@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?><CV>
+<EV dateinsert="20180318160000" dateprevue="20180319160000" daterun="20180318160000" echeance="24" noversion="1" producteur="DP" typeprev="1" crueint="99,2A,2B,22,74">
+<VCONSEIL texte="Neige-Verglas/Orange- Soyez très prudents et vigilants si vous devez absolument vous déplacer. Renseignez-vous sur les conditions de circulation.- Respectez les restrictions de circulation et déviations. Prévoyez un équipement minimum en cas d'immobilisation prolongée.- Si vous devez installer un groupe électrogène, placez-le impérativement à l'extérieur des bâtiments.- N'utilisez jamais des chauffages d'appoint à combustion en continu."/>
+<VCOMMENTAIRE texte="Petit épisode neigeux dimanche soir et lundi matin de l'Ile de France à la Normandie."/>
+</EV>
+<DV dep="01" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="02" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="03" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="04" coul="2">
+<risque val="8"/>
+</DV>
+<DV dep="05" coul="2">
+<risque val="8"/>
+</DV>
+<DV dep="06" coul="2">
+<risque val="8"/>
+</DV>
+<DV dep="0610" coul="1"/>
+<DV dep="07" coul="1"/>
+<DV dep="08" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="09" coul="2">
+<risque val="8"/>
+<risque val="3"/>
+</DV>
+<DV dep="10" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="11" coul="1"/>
+<DV dep="1110" coul="1"/>
+<DV dep="12" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="13" coul="1"/>
+<DV dep="1310" coul="1"/>
+<DV dep="14" coul="3">
+<risque val="5"/>
+</DV>
+<DV dep="1410" coul="1"/>
+<DV dep="15" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="16" coul="1"/>
+<DV dep="17" coul="2">
+<risque val="4"/>
+</DV>
+<DV dep="1710" coul="1"/>
+<DV dep="18" coul="2">
+<risque val="5"/>
+<risque val="4"/>
+</DV>
+<DV dep="19" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="21" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="22" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="2210" coul="1"/>
+<DV dep="23" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="24" coul="1"/>
+<DV dep="25" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="26" coul="1"/>
+<DV dep="27" coul="3">
+<risque val="5"/>
+</DV>
+<DV dep="27" coul="2">
+<risque val="4"/>
+</DV>
+<DV dep="28" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="29" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="2910" coul="1"/>
+<DV dep="2A" coul="2">
+<risque val="8"/>
+<risque val="3"/>
+<risque val="2"/>
+</DV>
+<DV dep="2A10" coul="2">
+<risque val="9"/>
+</DV>
+<DV dep="2B" coul="2">
+<risque val="8"/>
+<risque val="3"/>
+</DV>
+<DV dep="2B10" coul="1"/>
+<DV dep="30" coul="1"/>
+<DV dep="3010" coul="1"/>
+<DV dep="31" coul="2">
+<risque val="8"/>
+<risque val="3"/>
+</DV>
+<DV dep="32" coul="4">
+<risque val="3"/>
+</DV>
+<DV dep="33" coul="1"/>
+<DV dep="3310" coul="1"/>
+<DV dep="34" coul="1"/>
+<DV dep="3410" coul="1"/>
+<DV dep="35" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="3510" coul="1"/>
+<DV dep="36" coul="1"/>
+<DV dep="37" coul="1"/>
+<DV dep="38" coul="2">
+<risque val="8"/>
+</DV>
+<DV dep="39" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="40" coul="1"/>
+<DV dep="4010" coul="1"/>
+<DV dep="41" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="42" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="43" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="44" coul="1"/>
+<DV dep="4410" coul="1"/>
+<DV dep="45" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="46" coul="1"/>
+<DV dep="47" coul="1"/>
+<DV dep="48" coul="1"/>
+<DV dep="49" coul="1"/>
+<DV dep="50" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="5010" coul="1"/>
+<DV dep="51" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="52" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="53" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="54" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="55" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="56" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="5610" coul="1"/>
+<DV dep="57" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="58" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="59" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="5910" coul="1"/>
+<DV dep="60" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="61" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="62" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="6210" coul="1"/>
+<DV dep="63" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="64" coul="2">
+<risque val="3"/>
+<risque val="8"/>
+</DV>
+<DV dep="6410" coul="1"/>
+<DV dep="65" coul="2">
+<risque val="3"/>
+<risque val="8"/>
+</DV>
+<DV dep="66" coul="2">
+<risque val="8"/>
+</DV>
+<DV dep="6610" coul="1"/>
+<DV dep="67" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="68" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="69" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="70" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="71" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="72" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="73" coul="2">
+<risque val="8"/>
+</DV>
+<DV dep="74" coul="2">
+<risque val="8"/>
+</DV>
+<DV dep="75" coul="3">
+<risque val="5"/>
+</DV>
+<DV dep="75" coul="2">
+<risque val="4"/>
+</DV>
+<DV dep="76" coul="2">
+<risque val="5"/>
+<risque val="4"/>
+</DV>
+<DV dep="7610" coul="1"/>
+<DV dep="77" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="78" coul="3">
+<risque val="5"/>
+</DV>
+<DV dep="78" coul="2">
+<risque val="4"/>
+</DV>
+<DV dep="79" coul="1"/>
+<DV dep="80" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="8010" coul="1"/>
+<DV dep="81" coul="2">
+<risque val="5"/>
+<risque val="3"/>
+</DV>
+<DV dep="82" coul="2">
+<risque val="3"/>
+</DV>
+<DV dep="83" coul="2">
+<risque val="3"/>
+</DV>
+<DV dep="8310" coul="1"/>
+<DV dep="84" coul="1"/>
+<DV dep="85" coul="1"/>
+<DV dep="8510" coul="1"/>
+<DV dep="86" coul="1"/>
+<DV dep="87" coul="1"/>
+<DV dep="88" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="89" coul="2">
+<risque val="4"/>
+<risque val="5"/>
+</DV>
+<DV dep="90" coul="2">
+<risque val="5"/>
+</DV>
+<DV dep="91" coul="3">
+<risque val="5"/>
+</DV>
+<DV dep="95" coul="3">
+<risque val="5"/>
+</DV>
+<DV dep="95" coul="2">
+<risque val="4"/>
+</DV>
+<DV dep="99" coul="1"/>
+</CV>

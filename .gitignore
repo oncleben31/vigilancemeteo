@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+lib/
+build
+dist
+*.egg-info/
+
+
+# dotenv
+.env
+
+# virtualenv
+venv/
+ENV/
+bin/
+include/
+pyvenv.cfg
+
+# Unit test / coverage reports
+.pytest_cache/
+.tox/
+htmlcov/
+.coverage
+
+# pip
+pip-selfcheck.json
+
+# working files
+tests/aide.txt
