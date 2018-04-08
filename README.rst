@@ -31,11 +31,11 @@ Les propriétés suivantes sont disponibles:
 Exemple
 ========
 
-Example de cas d'usage::
+Exemple de cas d'usage::
 
-    >>>import vigilancemeteo.vigilance
+    >>>import vigilancemeteo
 
-    >>>zone = vigilancemeteo.vigilance.ZoneAlerte('92')
+    >>>zone = vigilancemeteo.ZoneAlerte('92')
 
     >>>zone.syntheseCouleur
     'Vert'
