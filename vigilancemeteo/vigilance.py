@@ -41,7 +41,6 @@ class ZoneAlerte(object):
     """
     # TODO: Définir comportement si problème d'accès au réseau
     # TODO: Vérfier les problèmatique d'encodate.
-    # TODO: Voir si on ajoute le conseil et commentaire sur le buletin
 
     # enums utilisées par cette classe. Attention premier indice est 0
     LISTE_COULEUR_ALERTE = ['Vert', 'Jaune', 'Orange', 'Rouge']
