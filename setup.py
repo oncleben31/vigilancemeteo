@@ -13,7 +13,7 @@ from setuptools import find_packages, setup, Command
 
 # Package meta-data.
 NAME = 'vigilancemeteo'
-DESCRIPTION = 'API python pour les alertes météo de '\
+DESCRIPTION = 'python API python to get active weather alerts from'\
               'http://vigilance.meteofrance.com/'
 URL = 'https://github.com/oncleben31/vigilancemeteo'
 EMAIL = None
