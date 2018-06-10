@@ -2,36 +2,34 @@
 Vigilance Météo
 ===============
 
-Vigilance Météo fourni une API python pour récupérer les alertes météo du site http://vigilance.meteofrance.com
+Vigilance Météo provides a python API to fetch weather alerts in France from http://vigilance.meteofrance.com website.
 
-**Note for English-speakers**: as the source provide information for France, I assume users are French-speakers. So documentation, code and comments are in French.
 
-Description de la classe
-========================
+Class descritpion
+=================
 
-La classe ZoneAlerte permet de récupérer les alertes en cours dans un
-département en particulier.
+ZoneAlerte class allows to fetch active alerts for a french department.
 
-La classe ZoneAlerte est définit par les attributs:
+Variables from ZoneAlerte class:
 
-* _departement : le département surveillé
-* _dateMiseAJour : la date et l'heure de mise à jour de la prévision par MétéoFrance
-* _listeAlertes : le dictionnaire comportant les alertes. L'indice du dictionnaire correspond au type de l'alerte et la valeur associée à la gravité de l'alerte eeprésenté par une couleur.
+* _departement : The department watched
+* _dateMiseAJour : Date and time of the weather forcast update from MétéoFrance
+* _listeAlertes : A dictionary with all the alerts. Keys for alert type and value for criticity (by color).
 
-La méthode suivante est disponibles:
+Methods from ZoneAlerte class:
 
-- miseAJourEtat() : pour mettre à jour la liste des alertes en prenant la dernière prévision de MétéoFrance
+- miseAJourEtat() : update alerts list by feching latest info from MétéoFrance forcast.
 
-Les propriétés suivantes sont disponibles:
+Properties from ZoneAlerte class
 
-- syntheseCouleur : retourne la couleur correspondant à la criticité maximum du département
-- urlPourEnSavoirPlus : retourne l'URL correspondant à la page web              détaillant les alertes en cours dans le département
-- messageDeSynthese : retourne une chaine de caractère faisant la synthèse des alertes en cours dans le département.
+- syntheseCouleur : return the overall criticity color for the department
+- urlPourEnSavoirPlus : return the URL to access more information about department weather alerts from the MétéoFrance website.
+- messageDeSynthese : return a string with textual synthesis of the active alerts in department.
 
-Exemple
+Example
 ========
 
-Exemple de cas d'usage::
+Use case example::
 
     >>>import vigilancemeteo
 

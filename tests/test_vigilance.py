@@ -14,33 +14,32 @@ else:
 
 @pytest.yield_fixture()
 def donneesLocales():
-    """Fixture pour utiliser une réponse locale."""
-    # Utilisation d'une réponse local à la place du site de Météo France
+    """Fixture to replace webiste answer by a local one."""
+    # Using local answer instead of MeteoFrance website
     valeurInitiale = ZoneAlerte.URL_VIGILANCE_METEO
     ZoneAlerte.URL_VIGILANCE_METEO = "./tests/NXFR33_LFPW_.xml"
-    # TODO: Voir si il faut pas coder le chemin autrement
+    # TODO: Check if we need to set the local file path in a better way.
     yield None
 
-    # On rétabli la valeur initiale
+    # Set back the initial value(using website instead of local answer)
     ZoneAlerte.URL_VIGILANCE_METEO = valeurInitiale
 
 
 def test_fonctionnel():
-    """Test fonctionel global."""
+    """Fonctional test"""
     zone = ZoneAlerte('32')
 
-    # Test sur la date de prevision. Elle doit être proche d'ajourd'hui
-    # à 1 jour près.
+    # Test the forecast update date and time. It should be near today.
     testDate = (datetime.datetime.now()
                 - zone.dateMiseAJour) < datetime.timedelta(days=1)
 
-    # Test si urlPourEnSavoirPlus est bien accessible
+    # Test if the URL urlPourEnSavoirPlus is available
     testUrl = urlopen(zone.urlPourEnSavoirPlus).getcode() == 200
 
-    # Test pour savoir si le département à bien une couleur
+    # Test to check if there is a overall criticity color for the department
     testCouleur = zone.syntheseCouleur in ZoneAlerte.LISTE_COULEUR_ALERTE
 
-    # Test le message de synthese
+    # Test the synthesis message
     testSynthese = zone.messageDeSynthese is not None
 
     assert (testDate, testUrl, testCouleur,
@@ -49,11 +48,11 @@ def test_fonctionnel():
 
 @pytest.mark.parametrize('dep', ['92', '93', '94'])
 def test_petiteCouronne(donneesLocales, dep):
-    """Test la petite Couronne.
+    """Test 'Petite Couronne' specificity.
 
-    Test le fonctionnement quand on utiliser un département de la petite
-    couronne de Paris qui ne sont pas dans le fichier XML du site
-    vigilance.meteofrance.fr. Dans ce cas on utilise le département 75.
+    Check code when we use a department in the Paris 'Petit Couronne' which are
+    not in the vigilance.meteofrance.fr XML file. In this case we use the
+    departement 75.
     """
 
     zone = ZoneAlerte(dep)
@@ -62,7 +61,7 @@ def test_petiteCouronne(donneesLocales, dep):
 
 @pytest.mark.parametrize('dep', [75, '2', 'bonjour', 1.5, '98', True, None])
 def test_departementNonValide(donneesLocales, dep):
-    """Test la creation d'une instance en utilisant des valeurs invalides."""
+    """Test when creating Class instace with with wrong parameters."""
     with pytest.raises(ValueError, match=r'.* département .*'):
         ZoneAlerte(dep)
 
@@ -71,13 +70,13 @@ def test_departementNonValide(donneesLocales, dep):
                          [('2A', 'Jaune'), ('07', 'Vert'),
                           ('95', 'Orange'), ('32', 'Rouge')])
 def test_couleurSynthese(donneesLocales, dep, coul):
-    """Test les propriétés de synthèse."""
+    """Test synthesis property."""
     zone = ZoneAlerte(dep)
     assert zone.syntheseCouleur == coul
 
 
 def test_risqueCotier(donneesLocales):
-    """Test les risques exclusifs aux départements du littoral."""
+    """Test specific risks for coastal departments."""
     zone = ZoneAlerte('2A')
     resultatAttendu = "ZoneAlerte: \n - departement: '2A'"\
                       "\n - dateMiseAJour: '2018-03-18 16:00:00'"\
@@ -89,13 +88,13 @@ def test_risqueCotier(donneesLocales):
 
 
 def test_messageDeSyntheseVert(donneesLocales):
-    """Test du message de synthèse quand il n'y a pas d'alerte en cours"""
+    """Test syntesis message when no active alert."""
     zone = ZoneAlerte('34')
     assert zone.messageDeSynthese == "Aucune alerte en cours."
 
 
 def test_messageDeSyntheseAvecAlerte(donneesLocales):
-    """Test du message de synthèse quand il y a au moins une alerte"""
+    """Test synthesis message when at least one active alert"""
     zone = ZoneAlerte('2A')
     resultatAttendu = "Alerte Jaune en cours :"\
                       "\n - Avalanches: Jaune"\

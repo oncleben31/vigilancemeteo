@@ -4,32 +4,29 @@ import datetime
 
 
 class ZoneAlerte(object):
-    """Une classe pour décrire les alertes météo d'un département Français.
+    """A Class to descripe French departments weather alerts.
 
-    Les informations sont récupérée du site vigilance.meteofrance.com.
+    Data are fetch ont vigilance.meteofrance.com website.
 
-    L'objet ZoneAlerte est définit par les attributs:
-    - _departement : le département surveillé
-    - _dateMiseAJour : la date et l'heure de mise à jour de la prévision par
-                       MétéoFrance
-    - _listeAlertes : le dictionnaire comportant les alertes. L'indice du
-                      dictionnaire correspond au type de l'alerte et la valeur
-                      associée à la gravité de l'alerte représenté par une
-                      couleur.
+    Variables from ZoneAlerte class:
+    - _departement : The department watched
+    - _dateMiseAJour : Date and time of the weather forcast update from
+      MétéoFrance
+    - _listeAlertes : A dictionary with all the alerts. Keys for alert type and
+      value for criticity (by color).
 
-    La méthode suivante est disponibles:
-    - miseAJourEtat() : pour mettre à jour la liste des alertes en prenant la
-                        dernière prévision de MétéoFrance
+    Methods from ZoneAlerte class:
+    - miseAJourEtat() : update alerts list by feching latest info from
+      MétéoFrance forcast.
 
-    Les propriétés suivantes sont disponibles:
-    - syntheseCouleur : retourne la couleur correspondant à la criticité
-                        maximum du département
-    - urlPourEnSavoirPlus : retourne l'URL correspondant à la page web
-                            détaillant les alertes en cours dans le département
-    - messageDeSynthese : retourne une chaine de caractère faisant la synthèse
-                          des alertes en cours dans le département.
+    Properties from ZoneAlerte class
+    - syntheseCouleur : return the overall criticity color for the department
+    - urlPourEnSavoirPlus : return the URL to access more information about
+      department weather alerts from the MétéoFrance website.
+    - messageDeSynthese : return a string with textual synthesis of the active
+      alerts in department.
 
-    Exemple:
+    Example:
     >>>import vigilancemeteo
     >>>zone = vigilancemeteo.ZoneAlerte('92')
     >>>zone.syntheseCouleur
@@ -39,19 +36,23 @@ class ZoneAlerte(object):
     >>>zone.messageDeSynthese
     'Aucune alerte en cours.'
     """
-    # TODO: Définir comportement si problème d'accès au réseau
-    # TODO: Vérfier les problèmatique d'encodate.
-    # TODO: Voir si on ajoute le conseil et commentaire sur le buletin
+    # TODO: Define behaviour if no network available
+    # TODO: Check potential encodage issues.
+    # TODO: Opportunity to add advises and comments from the weather buletin
 
-    # enums utilisées par cette classe. Attention premier indice est 0
+    # enums used in this class. Warning first indice is 0
+    # Alert criticity
     LISTE_COULEUR_ALERTE = ['Vert', 'Jaune', 'Orange', 'Rouge']
+    # Alert type
     LISTE_TYPE_ALERTE = ['Vent violent', 'Pluie-innodation', 'Orages',
                          'Inondation', 'Neige-verglas', 'Canicule',
                          'Grand-froid', 'Avalanches', 'Vagues-submersion']
+    # Coastal Departments list
     LISTE_DEPARTEMENT_LITTORAL = [
         '06', '11', '13', '14', '17', '22', '29', '2A', '2B', '30', '33', '34',
         '35', '40', '44', '50', '56', '59', '62', '64', '66', '76', '80', '83',
         '85']
+    # Valide departments list
     LISTE_DEPARTEMENT_VALIDE = [
         '01', '02', '03', '04', '05', '06', '07', '08', '09',
         '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
@@ -64,70 +65,68 @@ class ZoneAlerte(object):
         '80', '81', '82', '83', '84', '85', '86', '87', '88', '89',
         '90', '91', '92', '93', '94', '95', '99']
 
-    # URL utilisée pour récupérer les informations sur le site de Météo France
+    # URL used to fetch data on Météo France website
     URL_VIGILANCE_METEO = "http://vigilance.meteofrance.com"\
                           "/data/NXFR33_LFPW_.xml"
-    # URL_VIGILANCE_METEO = "./tests/NXFR33_LFPW_.xml"
+    # URL_VIGILANCE_METEO = "./tests/NXFR33_LFPW_.xml" #for local tests
 
     def __init__(self, departement):
-        """Constructeur de la classe.
+        """Class constructor.
 
-        Prend le département en paramètre sous forme du chaine de caractère
-        sur deux caractères. Peut prendre les valeurs de 01 à 95, 2A, 2B
-        et 99 (pour Andorre).
+        Expect to have the department number as a 2 character String. Can be
+        between 01 and 95, 2A, 2B or 99 (for Andorre).
         """
 
-        # Initialisation des attributs
+        # Variables init
         self._dateMiseAJour = None
         self._listeAlertes = {}
 
-        # Validation de l'attribut _departement via la propriété.
-        # Attention le setter lance automatiquement la méthode miseAJourEtat()
+        # Check _departement variable by the property.
+        # Warning the setter launch miseAJourEtat() methods
         self.departement = departement
 
     def miseAJourEtat(self):
-        """Récupère les alertes météo en cours pour le département.
+        """Fetch active weather alerts for the department.
 
-        Récupère la couleur de l'alerte pour les 9 types de vigilance sur le
-        site de météofrance et met à jour l'attribut 'listeAlertes'.
-        Récupère la date et l'heure de mise à jour du buletin sur le site de
-        météofrance et met à jour l'attribut '_dateMiseAJour'.
+        get the alert color for the 9 different types on the Météo France
+        website and update the variable 'listeAlertes'.
+        Get date and time of the buletin update on the Météo France website and
+        update the variable '_dateMiseAJour'.
         """
 
-        # vide la liste des alertes
+        # Empty the alerts list
         self._listeAlertes = {}
 
-        # Récupère les information sur le site de météofrance
+        # Fetch data on Mété France website
         tree = etree.parse(ZoneAlerte.URL_VIGILANCE_METEO)
 
-        # Récupère les alertes pour un département donné
+        # Get the acitve alerts for the specific department
         alertesStandards = tree.xpath("/CV/DV[attribute::dep='" +
                                       self._departement + "']")
-        # Ajout des alertes supplémentaires pour les département du littoral
+        # Get the additional active alerts if it is a coastal department
         if self._departement in ZoneAlerte.LISTE_DEPARTEMENT_LITTORAL:
             alertesStandards.extend(tree.xpath("/CV/DV[attribute::dep='" +
                                     self._departement + "10']"))
 
-        # Récupère les alertes du département.
-        # Elles sont regroupées par niveau (couleur)
+        # Identify each active alert and the color associated (criticity).
+        # They are grouped by color
         for alertesDuDepartement in alertesStandards:
-            # On récupère la couleur du groupe d'alertes
+            # Get the color of the alert group
             couleur = int(alertesDuDepartement.get('coul'))
 
-            # Récupère la liste des alertes en cours dans le département pour
-            # ce niveau d'alerte (couleur)
+            # Get all the active alerts in the group
             for risque in list(alertesDuDepartement):
                 type = int(risque.get('val'))
-                # On met à jour la liste des alertes du département.
+                # Update the instance variable with the alert list
                 self._miseAJourAlerte(ZoneAlerte.LISTE_TYPE_ALERTE[type - 1],
                                       ZoneAlerte.LISTE_COULEUR_ALERTE[couleur
                                                                       - 1])
 
-        # Recupere la date de mise a jour de la prévision
+        # Get the date and time of the buletin update
         elementDate = tree.xpath("/CV/EV")
         stringDate = elementDate[0].get('dateinsert')
 
-        # On la converti en date et heure
+        # Convert the string in date and time
         annee = int(stringDate[0:4])
         mois = int(stringDate[4:6])
         jour = int(stringDate[6:8])
@@ -138,13 +137,13 @@ class ZoneAlerte(object):
                                                 minute, seconde)
 
     def _miseAJourAlerte(self, type, couleur):
-        """Met à jour un type d'alerte."""
+        """Update on alert type."""
         self._listeAlertes[type] = couleur
 
     def __repr__(self):
-        """"Représenation de l'instance"""
-        # Tri des clés du dictionnaires car avant python 3.6 elles ne sont
-        # pas ordonnées
+        """"instance representation"""
+        # Order the dictionary keys ecause before python 3.6 keys are not
+        # ordered
         listeAlertesOrdonnee = ""
         for key in sorted(self.listeAlertes.keys()):
             listeAlertesOrdonnee = listeAlertesOrdonnee +\
@@ -157,9 +156,9 @@ class ZoneAlerte(object):
 
     @property
     def syntheseCouleur(self):
-        """Retourne la couleur du département.
+        """Get the department color.
 
-        Elle correspond à la couleur de l'alerte la plus critique.
+        It's the color of the most critical alert.
         """
         if any(alerte == 'Rouge' for alerte in self.listeAlertes.values()):
             synthese = 'Rouge'
@@ -173,23 +172,23 @@ class ZoneAlerte(object):
 
     @property
     def urlPourEnSavoirPlus(self):
-        """Pour en savoir plus sur les alertes du département.
+        """Get the link to have additional info about alerts in department.
 
-        Retourne l'url du site vigilance.meteofrance.com pour connaitre le
-        détail des alertes en cours dans le departement.
+        Return the vigilance.meteofrance.com URL to get additinonal details
+        about active alerts in the department.
         """
         return "http://vigilance.meteofrance.com/"\
                "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._departement)
 
     @property
     def messageDeSynthese(self):
-        """Message expliquant la liste des alertes en cours du département."""
+        """Get synthesis text message to have the list of the active alerts."""
         if self.syntheseCouleur == 'Vert':
             message = "Aucune alerte en cours."
         else:
             message = "Alerte {} en cours :".format(self.syntheseCouleur)
-            # Tri des clés du dictionnaires car avant python 3.6 elles ne sont
-            # pas ordonnées
+            # Order the dictionary keys ecause before python 3.6 keys are not
+            # ordered
             for type in sorted(self.listeAlertes.keys()):
                 message = message + "\n - {}: {}"\
                           .format(type, self.listeAlertes[type])
@@ -210,30 +209,29 @@ class ZoneAlerte(object):
 
     @departement.setter
     def departement(self, departement):
-        """Setter avec vérification de la valeur 'departement'.
+        """Setter with consitency check on the 'departement' value.
 
-        Il faut rentrer le département sous forme de chaine de 2 caractères.
-        Dans le fichier XML source, les départements 92, 93 et 94 n'existent
-        pas. Dans ce cas, il faut utiliser le département 75 à la place.
-        Le setter lance la méthode miseAJourEtat() de manière systématique.
+        Departemnt variable should be a 2 chararcters string. In the source XML
+        file, the 92, 93 and 95 departments do not exist. In this case we have
+        to use the 75 department instead.
+        This setter will call the miseAJourEtat() method systematicaly.
         """
-        # Vérfie les valeurs valide pour departement
+        # Check the valide values for department
         if departement not in ZoneAlerte.LISTE_DEPARTEMENT_VALIDE:
             raise ValueError("Le département doit être une chaine de 2 "
                              "caractères compris entre '01' et '95' ou '2A' "
                              "ou '2B' ou '99'")
 
-        # Liste des équivalences
+        # Equivalences list
         equivalence75 = ['92', '93', '94']
         departementValide = departement
 
-        # Remplace les départements qui n'existent pas dans le XML par leur
-        # équivalence.
+        # Replace, the missing department in the XLM by the equivalence.
         if departement in equivalence75:
             departementValide = '75'
 
-        # Affect l'attribut
+        # Set the variable
         self._departement = departementValide
 
-        # Lance la première mise à jour de l'état
+        # Call the first update
         self.miseAJourEtat()

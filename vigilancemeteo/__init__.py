@@ -1,9 +1,9 @@
 # coding: utf-8
-"""Vigilancemeteo foruni un moyen de récupérer les alertes météo identifiées
-par Météo France.
+"""Vigilancemeteo provide an API to fetch France weather alerts from Météo
+France website.
 
-La classe ZoneAlerte permet de récupérer les alertes météo en cours dans un
-département en particulier.
+
+ZoneAlerte class allows to fetch active weather alerts for a french department.
 """
 
 from .vigilance import ZoneAlerte
