@@ -97,7 +97,8 @@ class ZoneAlerte(object):
         # Empty the alerts list
         self._listeAlertes = {}
 
-        # Fetch data on Mété France website
+        # Fetch data on Météo France website
+        # TODO: add managment of potential errors
         tree = etree.parse(ZoneAlerte.URL_VIGILANCE_METEO)
 
         # Get the acitve alerts for the specific department
