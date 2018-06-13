@@ -7,21 +7,19 @@ Vigilance Météo provides a python API to fetch weather alerts in France from [
 
 ZoneAlerte class allows to fetch active alerts for a french department.
 
-### Variables from ZoneAlerte class:
+### Public Methods from ZoneAlerte class:
 
-*   _departement : The department watched
-*   _dateMiseAJour : Date and time of the weather forcast update from MétéoFrance
-*   _listeAlertes : A dictionary with all the alerts. Keys for alert type and value for criticity (by color).
+-   miseAJourEtat(): update alerts list by feching latest info from MétéoFrance forcast.
 
-### Methods from ZoneAlerte class:
+### Public attributes from ZoneAlerte class
 
--   miseAJourEtat() : update alerts list by feching latest info from MétéoFrance forcast.
-
-### Properties from ZoneAlerte class
-
--   syntheseCouleur : return the overall criticity color for the department
--   urlPourEnSavoirPlus : return the URL to access more information about department weather alerts from the MétéoFrance website.
--   messageDeSynthese : return a string with textual synthesis of the active alerts in department.
+-   syntheseCouleur: return the overall criticity color for the department
+-   urlPourEnSavoirPlus: return the URL to access more information about department weather alerts from the MétéoFrance website.
+-   messageDeSynthese: return a string with textual synthesis of the active alerts in department.
+-   dateMiseAJour: return latest bulletin update date & time
+-   departement: Get or set the departement number corresponding to the area
+    watched.
+-   listeAlertes: return the list of active alerts
 
 ## Example
 
@@ -40,10 +38,10 @@ ZoneAlerte class allows to fetch active alerts for a french department.
     'Aucune alerte en cours.'
 
 ## Installation
-You can install the python package by cloning this repository.
+You can install the python package by cloning this repository and launching the command `python setup.py install`
 
 Alternatively, there is a [pyPi package available](https://pypi.org/project/vigilancemeteo/) to be installed using pip:
 `pip install vigilancemeteo`
 
 ## References
-Thank you to Lunarok to show an implementation example for [Jeedom in PHP](https://github.com/lunarok/jeedom_vigilancemeteo). Lot of inspiration for this python implementation.
+Thank you to Lunarok to show an implementation example [in PHP for Jeedom](https://github.com/lunarok/jeedom_vigilancemeteo). Lot of inspiration for this python implementation.

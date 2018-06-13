@@ -90,13 +90,13 @@ def test_risqueCotier(donneesLocales):
 def test_messageDeSyntheseVert(donneesLocales):
     """Test syntesis message when no active alert."""
     zone = ZoneAlerte('34')
-    assert zone.messageDeSynthese == "Aucune alerte en cours."
+    assert zone.messageDeSynthese == "Aucune alerte météo en cours."
 
 
 def test_messageDeSyntheseAvecAlerte(donneesLocales):
     """Test synthesis message when at least one active alert"""
     zone = ZoneAlerte('2A')
-    resultatAttendu = "Alerte Jaune en cours :"\
+    resultatAttendu = "Alerte météo Jaune en cours :"\
                       "\n - Avalanches: Jaune"\
                       "\n - Orages: Jaune"\
                       "\n - Pluie-innodation: Jaune"\

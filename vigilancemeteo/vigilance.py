@@ -8,23 +8,27 @@ class ZoneAlerte(object):
 
     Data are fetch ont vigilance.meteofrance.com website.
 
-    Variables from ZoneAlerte class:
-    - _departement : The department watched
-    - _dateMiseAJour : Date and time of the weather forcast update from
+    Private attributes from ZoneAlerte class:
+    - _departement: The department watched
+    - _dateMiseAJour: Date and time of the weather forcast update from
       MétéoFrance
-    - _listeAlertes : A dictionary with all the alerts. Keys for alert type and
+    - _listeAlertes: A dictionary with all the alerts. Keys for alert type and
       value for criticity (by color).
 
     Methods from ZoneAlerte class:
-    - miseAJourEtat() : update alerts list by feching latest info from
+    - miseAJourEtat(): update alerts list by feching latest info from
       MétéoFrance forcast.
 
-    Properties from ZoneAlerte class
-    - syntheseCouleur : return the overall criticity color for the department
-    - urlPourEnSavoirPlus : return the URL to access more information about
+    Public attributes  from ZoneAlerte class
+    - syntheseCouleur: return the overall criticity color for the department
+    - urlPourEnSavoirPlus: return the URL to access more information about
       department weather alerts from the MétéoFrance website.
-    - messageDeSynthese : return a string with textual synthesis of the active
+    - messageDeSynthese: return a string with textual synthesis of the active
       alerts in department.
+    - dateMiseAJour: return latest bulletin update date & time
+    - departement: Get or set the departement number corresponding to the area
+      watched.
+    - listeAlertes: return the list of active alerts
 
     Example:
     >>>import vigilancemeteo
@@ -182,12 +186,13 @@ class ZoneAlerte(object):
                "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._departement)
 
     @property
+    # TODO: add parameter to choose the format (plain text ot HTML)
     def messageDeSynthese(self):
         """Get synthesis text message to have the list of the active alerts."""
         if self.syntheseCouleur == 'Vert':
-            message = "Aucune alerte en cours."
+            message = "Aucune alerte météo en cours."
         else:
-            message = "Alerte {} en cours :".format(self.syntheseCouleur)
+            message = "Alerte météo {} en cours :".format(self.syntheseCouleur)
             # Order the dictionary keys ecause before python 3.6 keys are not
             # ordered
             for type in sorted(self.listeAlertes.keys()):
@@ -218,6 +223,7 @@ class ZoneAlerte(object):
         This setter will call the miseAJourEtat() method systematicaly.
         """
         # Check the valide values for department
+        # TODO: Add in the error message the value passed in the methods
         if departement not in ZoneAlerte.LISTE_DEPARTEMENT_VALIDE:
             raise ValueError("Le département doit être une chaine de 2 "
                              "caractères compris entre '01' et '95' ou '2A' "
