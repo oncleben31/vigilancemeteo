@@ -18,13 +18,14 @@ class ZoneAlerte(object):
     Methods from ZoneAlerte class:
     - miseAJourEtat(): update alerts list by feching latest info from
       MétéoFrance forcast.
+    - messageDeSynthese(format): return a string with textual synthesis
+      of the active alerts in department. According to value of 'format'
+      parameter, the string return change: 'text' (default) or 'html'
 
     Public attributes  from ZoneAlerte class
     - syntheseCouleur: return the overall criticity color for the department
     - urlPourEnSavoirPlus: return the URL to access more information about
       department weather alerts from the MétéoFrance website.
-    - messageDeSynthese: return a string with textual synthesis of the active
-      alerts in department.
     - dateMiseAJour: return latest bulletin update date & time
     - departement: Get or set the departement number corresponding to the area
       watched.
@@ -185,20 +186,33 @@ class ZoneAlerte(object):
         return "http://vigilance.meteofrance.com/"\
                "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._departement)
 
-    @property
     # TODO: add parameter to choose the format (plain text ot HTML)
-    def messageDeSynthese(self):
+    def messageDeSynthese(self, format='text'):
         """Get synthesis text message to have the list of the active alerts."""
         if self.syntheseCouleur == 'Vert':
-            message = "Aucune alerte météo en cours."
+            if format == 'text':
+                message = "Aucune alerte météo en cours."
+            elif format == 'html':
+                message = "<p>Aucune alerte météo en cours.</p>"
         else:
-            message = "Alerte météo {} en cours :".format(self.syntheseCouleur)
-            # Order the dictionary keys ecause before python 3.6 keys are not
-            # ordered
-            for type in sorted(self.listeAlertes.keys()):
-                message = message + "\n - {}: {}"\
-                          .format(type, self.listeAlertes[type])
-
+            if format == 'text':
+                message = \
+                    "Alerte météo {} en cours :".format(self.syntheseCouleur)
+                # Order the dictionary keys ecause before python 3.6 keys are
+                # not ordered
+                for type in sorted(self.listeAlertes.keys()):
+                    message = message + "\n - {}: {}"\
+                              .format(type, self.listeAlertes[type])
+            elif format == 'html':
+                message = \
+                    "<p>Alerte météo {} en cours :"\
+                    "</p><ul>".format(self.syntheseCouleur)
+                # Order the dictionary keys ecause before python 3.6 keys are
+                # not ordered
+                for type in sorted(self.listeAlertes.keys()):
+                    message = message + "<li>{}: {}</li>"\
+                              .format(type, self.listeAlertes[type])
+                message = message + '</ul>'
         return message
 
     @property

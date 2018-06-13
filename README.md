@@ -10,12 +10,15 @@ ZoneAlerte class allows to fetch active alerts for a french department.
 ### Public Methods from ZoneAlerte class:
 
 -   miseAJourEtat(): update alerts list by feching latest info from MétéoFrance forcast.
+-   messageDeSynthese(format): return a string with textual synthesis
+    of the active alerts in department. According to value of `format`
+    parameter, the string return change: `'text'` (default) or `'html'`
+
 
 ### Public attributes from ZoneAlerte class
 
 -   syntheseCouleur: return the overall criticity color for the department
 -   urlPourEnSavoirPlus: return the URL to access more information about department weather alerts from the MétéoFrance website.
--   messageDeSynthese: return a string with textual synthesis of the active alerts in department.
 -   dateMiseAJour: return latest bulletin update date & time
 -   departement: Get or set the departement number corresponding to the area
     watched.

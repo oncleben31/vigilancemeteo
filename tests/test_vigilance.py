@@ -87,18 +87,31 @@ def test_risqueCotier(donneesLocales):
     assert zone.__repr__() == resultatAttendu
 
 
-def test_messageDeSyntheseVert(donneesLocales):
+@pytest.mark.parametrize('format', ['text', 'html'])
+def test_messageDeSyntheseVert(donneesLocales, format):
     """Test syntesis message when no active alert."""
     zone = ZoneAlerte('34')
-    assert zone.messageDeSynthese == "Aucune alerte météo en cours."
+    if format == 'text':
+        resultatAttendu = "Aucune alerte météo en cours."
+    elif format == 'html':
+        resultatAttendu = "<p>Aucune alerte météo en cours.</p>"
+    assert zone.messageDeSynthese(format) == resultatAttendu
 
 
-def test_messageDeSyntheseAvecAlerte(donneesLocales):
+@pytest.mark.parametrize('format', ['text', 'html'])
+def test_messageDeSyntheseAvecAlerte(donneesLocales, format):
     """Test synthesis message when at least one active alert"""
     zone = ZoneAlerte('2A')
-    resultatAttendu = "Alerte météo Jaune en cours :"\
-                      "\n - Avalanches: Jaune"\
-                      "\n - Orages: Jaune"\
-                      "\n - Pluie-innodation: Jaune"\
-                      "\n - Vagues-submersion: Jaune"
-    assert zone.messageDeSynthese == resultatAttendu
+    if format == 'text':
+        resultatAttendu = "Alerte météo Jaune en cours :"\
+                          "\n - Avalanches: Jaune"\
+                          "\n - Orages: Jaune"\
+                          "\n - Pluie-innodation: Jaune"\
+                          "\n - Vagues-submersion: Jaune"
+    elif format == 'html':
+        resultatAttendu = "<p>Alerte météo Jaune en cours :</p><ul>"\
+                          "<li>Avalanches: Jaune</li>"\
+                          "<li>Orages: Jaune</li>"\
+                          "<li>Pluie-innodation: Jaune</li>"\
+                          "<li>Vagues-submersion: Jaune</li></ul>"
+    assert zone.messageDeSynthese(format) == resultatAttendu
