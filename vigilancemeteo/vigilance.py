@@ -186,7 +186,6 @@ class ZoneAlerte(object):
         return "http://vigilance.meteofrance.com/"\
                "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._departement)
 
-    # TODO: add parameter to choose the format (plain text ot HTML)
     def messageDeSynthese(self, format='text'):
         """Get synthesis text message to have the list of the active alerts."""
         if self.syntheseCouleur == 'Vert':
@@ -237,11 +236,10 @@ class ZoneAlerte(object):
         This setter will call the miseAJourEtat() method systematicaly.
         """
         # Check the valide values for department
-        # TODO: Add in the error message the value passed in the methods
         if departement not in ZoneAlerte.LISTE_DEPARTEMENT_VALIDE:
-            raise ValueError("Le département doit être une chaine de 2 "
-                             "caractères compris entre '01' et '95' ou '2A' "
-                             "ou '2B' ou '99'")
+            raise ValueError("Departement parameter have to be a 2 character"
+                             "between '01' and '95' or '2A' or '2B' or '99'."
+                             "Used value: {}".format(departement))
 
         # Equivalences list
         equivalence75 = ['92', '93', '94']
