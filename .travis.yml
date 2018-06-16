@@ -3,6 +3,9 @@ language: python
 python:
   - "3.6"
   - "2.7"
+  # PyPy versions
+  - "pypy2.7"
+  - "pypy3.5"
 
 install:
   - pip install pytest pytest-cov
