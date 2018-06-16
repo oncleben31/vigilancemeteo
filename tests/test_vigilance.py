@@ -62,7 +62,7 @@ def test_petiteCouronne(donneesLocales, dep):
 @pytest.mark.parametrize('dep', [75, '2', 'bonjour', 1.5, '98', True, None])
 def test_departementNonValide(donneesLocales, dep):
     """Test when creating Class instace with with wrong parameters."""
-    with pytest.raises(ValueError, match=r'.* département .*'):
+    with pytest.raises(ValueError, match=r'Departement .*'):
         ZoneAlerte(dep)
 
 
