@@ -9,7 +9,7 @@ install:
   - python setup.py install
 
 script:
-  - coverage run tests.py
+  - coverage run pytest
 
 after_success:
   - codecov
