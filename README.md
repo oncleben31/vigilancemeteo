@@ -1,5 +1,5 @@
 # Vigilance Météo
-[![Build Status](https://travis-ci.org/oncleben31/oncleben31-cc.svg?branch=master)](https://travis-ci.org/oncleben31/oncleben31-cc)
+[![Build Status](https://travis-ci.com/oncleben31/vigilancemeteo.svg?branch=master)](https://travis-ci.com/oncleben31/vigilancemeteo)
 [![codecov](https://codecov.io/gh/oncleben31/vigilancemeteo/branch/master/graph/badge.svg)](https://codecov.io/gh/oncleben31/vigilancemeteo)
 [![PyPI version](https://badge.fury.io/py/vigilancemeteo.svg)](https://badge.fury.io/py/vigilancemeteo)
 
