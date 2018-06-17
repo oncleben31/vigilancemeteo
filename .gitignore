@@ -36,3 +36,6 @@ pip-selfcheck.json
 
 # working files
 tests/aide.txt
+
+#Visual Studio Code
+.vscode/
