@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.com/oncleben31/vigilancemeteo.svg?branch=master)](https://travis-ci.com/oncleben31/vigilancemeteo)
 [![codecov](https://codecov.io/gh/oncleben31/vigilancemeteo/branch/master/graph/badge.svg)](https://codecov.io/gh/oncleben31/vigilancemeteo)
 [![PyPI version](https://badge.fury.io/py/vigilancemeteo.svg)](https://badge.fury.io/py/vigilancemeteo)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Vigilance Météo provides a python API to fetch weather alerts in France or Andorre from Météo France ([http://vigilance.meteofrance.com](http://vigilance.meteofrance.com)) website.
 
