@@ -44,7 +44,8 @@ class ZoneAlerte(object):
     # TODO: Define behaviour if no network available
     # TODO: Check potential encodage issues.
     # TODO: Opportunity to add advises and comments from the weather buletin
-
+    # TODO: monitor change from one bulletin to another
+    
     # enums used in this class. Warning first indice is 0
     # Alert criticity
     LISTE_COULEUR_ALERTE = ['Vert', 'Jaune', 'Orange', 'Rouge']
