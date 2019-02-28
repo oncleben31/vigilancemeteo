@@ -24,6 +24,17 @@ def donneesLocales():
     # Set back the initial value(using website instead of local answer)
     ZoneAlerte.URL_VIGILANCE_METEO = valeurInitiale
 
+@pytest.yield_fixture()
+def donneesInnaccessibles():
+    """Fixture to replace webiste answer by an inaxessible one."""
+    # Using local answer instead of MeteoFrance website
+    valeurInitiale = ZoneAlerte.URL_VIGILANCE_METEO
+    ZoneAlerte.URL_VIGILANCE_METEO = "http://vigilance.meteofrance.com"\
+                          "/data/fake_test.xml"
+    yield None
+
+    # Set back the initial value(using website instead of local answer)
+    ZoneAlerte.URL_VIGILANCE_METEO = valeurInitiale
 
 def test_fonctionnel():
     """Fonctional test"""
@@ -45,6 +56,21 @@ def test_fonctionnel():
     assert (testDate, testUrl, testCouleur,
             testSynthese) == (True, True, True, True)
 
+def test_URLInnaccessible(donneesInnaccessibles):
+    zone = ZoneAlerte('32')
+
+    # Test the forecast update date and time. It should be near today.
+    testDate = zone.dateMiseAJour ==  None
+
+    # Test to check if there is a overall criticity color for the department
+    testCouleur = zone.syntheseCouleur == 'Inconnue'
+
+    # Test the synthesis message
+    testSyntheseText = zone.messageDeSynthese('text') == "Impossible de récupérer l'information"
+    testSyntheseHTML = zone.messageDeSynthese('html') == "<p>Impossible de récupérer l'infmation</p>"
+
+    assert (testDate, testCouleur,
+            testSyntheseText, testSyntheseHTML) == (True, True, True, True)
 
 @pytest.mark.parametrize('dep', ['92', '93', '94'])
 def test_petiteCouronne(donneesLocales, dep):

@@ -1,6 +1,7 @@
 # coding: utf-8
-from lxml import etree
+"""Module to implement weather alerts from météofrance"""
 import datetime
+from lxml import etree
 
 
 class ZoneAlerte(object):
@@ -41,11 +42,11 @@ class ZoneAlerte(object):
     >>>zone.messageDeSynthese
     'Aucune alerte en cours.'
     """
-    # TODO: Define behaviour if no network available
     # TODO: Check potential encodage issues.
     # TODO: Opportunity to add advises and comments from the weather buletin
     # TODO: monitor change from one bulletin to another
-    
+    # TODO: Add markdown format
+
     # enums used in this class. Warning first indice is 0
     # Alert criticity
     LISTE_COULEUR_ALERTE = ['Vert', 'Jaune', 'Orange', 'Rouge']
@@ -86,6 +87,7 @@ class ZoneAlerte(object):
         # Variables init
         self._dateMiseAJour = None
         self._listeAlertes = {}
+        self._departement = None
 
         # Check _departement variable by the property.
         # Warning the setter launch miseAJourEtat() methods
@@ -104,48 +106,53 @@ class ZoneAlerte(object):
         self._listeAlertes = {}
 
         # Fetch data on Météo France website
-        # TODO: add managment of potential errors
-        tree = etree.parse(ZoneAlerte.URL_VIGILANCE_METEO)
+        try:
+            tree = etree.parse(ZoneAlerte.URL_VIGILANCE_METEO)
+        except:
+            # OSError, IOError
+            # If error during reading the data on the website, all the
+            # attribues are reset.
+            self._dateMiseAJour = None
+            self._listeAlertes = {}
+        else:
+            # Get the active alerts for the specific department
+            alertesStandards = tree.xpath("/CV/DV[attribute::dep='" +
+                                          self._departement + "']")
+            # Get the additional active alerts if it is a coastal department
+            if self._departement in ZoneAlerte.LISTE_DEPARTEMENT_LITTORAL:
+                alertesStandards.extend(tree.xpath("/CV/DV[attribute::dep='" +
+                                                   self._departement + "10']"))
 
-        # Get the acitve alerts for the specific department
-        alertesStandards = tree.xpath("/CV/DV[attribute::dep='" +
-                                      self._departement + "']")
-        # Get the additional active alerts if it is a coastal department
-        if self._departement in ZoneAlerte.LISTE_DEPARTEMENT_LITTORAL:
-            alertesStandards.extend(tree.xpath("/CV/DV[attribute::dep='" +
-                                    self._departement + "10']"))
+            # Identify each active alert and the color associated (criticity).
+            # They are grouped by color
+            for alertesDuDepartement in alertesStandards:
+                # Get the color of the alert group
+                couleur = int(alertesDuDepartement.get('coul'))
 
-        # Identify each active alert and the color associated (criticity).
-        # They are grouped by color
-        for alertesDuDepartement in alertesStandards:
-            # Get the color of the alert group
-            couleur = int(alertesDuDepartement.get('coul'))
+                # Get all the active alerts in the group
+                for risque in list(alertesDuDepartement):
+                    typeRisque = int(risque.get('val'))
+                    # Update the instance variable with the alert list
+                    self._miseAJourAlerte(ZoneAlerte.LISTE_TYPE_ALERTE[typeRisque - 1],
+                                          ZoneAlerte.LISTE_COULEUR_ALERTE[couleur - 1])
 
-            # Get all the active alerts in the group
-            for risque in list(alertesDuDepartement):
-                type = int(risque.get('val'))
-                # Update the instance variable with the alert list
-                self._miseAJourAlerte(ZoneAlerte.LISTE_TYPE_ALERTE[type - 1],
-                                      ZoneAlerte.LISTE_COULEUR_ALERTE[couleur
-                                                                      - 1])
+            # Get the date and time of the buletin update
+            elementDate = tree.xpath("/CV/EV")
+            stringDate = elementDate[0].get('dateinsert')
 
-        # Get the date and time of the buletin update
-        elementDate = tree.xpath("/CV/EV")
-        stringDate = elementDate[0].get('dateinsert')
+            # Convert the string in date and time
+            annee = int(stringDate[0:4])
+            mois = int(stringDate[4:6])
+            jour = int(stringDate[6:8])
+            heure = int(stringDate[8:10])
+            minute = int(stringDate[10:12])
+            seconde = int(stringDate[12:14])
+            self._dateMiseAJour = datetime.datetime(annee, mois, jour, heure,
+                                                    minute, seconde)
 
-        # Convert the string in date and time
-        annee = int(stringDate[0:4])
-        mois = int(stringDate[4:6])
-        jour = int(stringDate[6:8])
-        heure = int(stringDate[8:10])
-        minute = int(stringDate[10:12])
-        seconde = int(stringDate[12:14])
-        self._dateMiseAJour = datetime.datetime(annee, mois, jour, heure,
-                                                minute, seconde)
-
-    def _miseAJourAlerte(self, type, couleur):
+    def _miseAJourAlerte(self, typeRisque, couleur):
         """Update on alert type."""
-        self._listeAlertes[type] = couleur
+        self._listeAlertes[typeRisque] = couleur
 
     def __repr__(self):
         """"instance representation"""
@@ -173,6 +180,9 @@ class ZoneAlerte(object):
             synthese = 'Orange'
         elif any(alerte == 'Jaune' for alerte in self.listeAlertes.values()):
             synthese = 'Jaune'
+        elif self.dateMiseAJour is None:
+            # if update date is None it's mean we ahd issue getting the information
+            synthese = 'Inconnue'
         else:
             synthese = 'Vert'
         return synthese
@@ -194,6 +204,11 @@ class ZoneAlerte(object):
                 message = "Aucune alerte météo en cours."
             elif format == 'html':
                 message = "<p>Aucune alerte météo en cours.</p>"
+        elif self.syntheseCouleur == 'Inconnue':
+            if format == 'text':
+                message = "Impossible de récupérer l'information"
+            if format == 'html':
+                message = "<p>Impossible de récupérer l'infmation</p>"
         else:
             if format == 'text':
                 message = \
@@ -217,19 +232,22 @@ class ZoneAlerte(object):
 
     @property
     def dateMiseAJour(self):
+        """Accessor and setter for Update date"""
         return self._dateMiseAJour
 
     @property
     def listeAlertes(self):
+        """Accessor and setter for weather alerts list"""
         return self._listeAlertes
 
     @property
     def departement(self):
+        """Accessor for area code linked to the weather report"""
         return self._departement
 
     @departement.setter
     def departement(self, departement):
-        """Setter with consitency check on the 'departement' value.
+        """Setter with consitency check on the are code value.
 
         Departemnt variable should be a 2 chararcters string. In the source XML
         file, the 92, 93 and 95 departments do not exist. In this case we have
