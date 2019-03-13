@@ -25,7 +25,7 @@ class ZoneAlerte(object):
 
     Public attributes  from ZoneAlerte class
     - synthese_couleur: return the overall criticity color for the department
-    - urlPourEnSavoirPlus: return the URL to access more information about
+    - url_pour_en_savoir_plus: return the URL to access more information about
       department weather alerts from the MétéoFrance website.
     - date_mise_a_jour: return latest bulletin update date & time
     - departement: Get or set the departement number corresponding to the area
