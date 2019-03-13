@@ -13,19 +13,19 @@ ZoneAlerte class allows to fetch active weather alerts for a french department o
 
 ### Public Methods from ZoneAlerte class:
 
--   `miseAJourEtat()`: update alerts list by feching latest info from MétéoFrance forcast.
--   `messageDeSynthese(format)`: return a string with textual synthesis
-    of the active weather alerts in the department. Depending of the `format` value, the string change: `'text'` (default) or `'html'`.
+-   `mise_a_jour_etat()`: update alerts list by feching latest info from MétéoFrance forcast.
+-   `message_de_synthese(msg_format)`: return a string with textual synthesis
+    of the active weather alerts in the department. Depending of the `msg_format` value, the string change: `'text'` (default) or `'html'`.
 
 
 ### Public attributes from ZoneAlerte class
 
--   `syntheseCouleur`: return the overall criticity color for the department.
--   `urlPourEnSavoirPlus`: return the URL to access more information about department weather alerts on the MétéoFrance website.
--   `dateMiseAJour`: return latest bulletin update date & time.
+-   `synthese_couleur`: return the overall criticity color for the department.
+-   `url_pour_en_savoir_plus`: return the URL to access more information about department weather alerts on the MétéoFrance website.
+-   `date_mise_a_jour`: return latest bulletin update date & time.
 -   `departement`: get or set the department number corresponding to the area
     watched. Should be a 2 characters string.
--   `listeAlertes`: return the list of active alerts.
+-   `liste_alertes`: return the list of active alerts.
 
 
 ## Examples
@@ -35,14 +35,14 @@ ZoneAlerte class allows to fetch active weather alerts for a french department o
 
     >>>zone = vigilancemeteo.ZoneAlerte('92')
 
-    >>>zone.syntheseCouleur
-    'Vert'
+    >>>zone.synthese_couleur
+    'Jaune'
 
-    >>>zone.urlPourEnSavoirPlus
+    >>>zone.url_pour_en_savoir_plus
     'http://vigilance.meteofrance.com/Bulletin_sans.html?a=dept75&b=1&c='
 
-    >>>zone.messageDeSynthese
-    'Aucune alerte en cours.'
+    >>>zone.message_de_synthese('text')
+    'Alerte météo Jaune en cours :\n - Vent violent: Jaune'
 
 ## Installation
 
