@@ -42,7 +42,7 @@ class ZoneAlerte(object):
     >>>zone.message_de_synthese
     'Aucune alerte en cours.'
     """
-    # TODO: Check potential encodage issues.
+    # TODO: Check potential encodage issues. # pylint: disable=fixme
     # TODO: Opportunity to add advises and comments from the weather buletin.
     # TODO: Monitor change from one bulletin to another.
     # TODO: Add markdown format.
@@ -107,7 +107,7 @@ class ZoneAlerte(object):
 
         # Fetch data on Météo France website
         try:
-            tree = etree.parse(ZoneAlerte.URL_VIGILANCE_METEO)
+            tree = etree.parse(ZoneAlerte.URL_VIGILANCE_METEO) #pylint disable=c-extension-no-member
         except (OSError, IOError):
             # If error during reading the data on the website, all the
             # attribues are reset.

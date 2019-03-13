@@ -1,13 +1,15 @@
 # coding: utf-8
+# pylint: disable= unused-argument, redefined-outer-name
+"""tests for vigilance module"""
 import datetime
-import pytest
 import sys
+import pytest
 
 from vigilancemeteo import ZoneAlerte
 
 # Manage differences beetween python 2.7 and 3.6
 if sys.version_info < (3, 0):
-    from urllib2 import urlopen
+    from urllib2 import urlopen #pylint: disable=import-error
 else:
     from urllib.request import urlopen
 
@@ -18,6 +20,7 @@ def fix_donnees_locales():
     # Using local answer instead of MeteoFrance website
     valeur_initiale = ZoneAlerte.URL_VIGILANCE_METEO
     ZoneAlerte.URL_VIGILANCE_METEO = "./tests/NXFR33_LFPW_.xml"
+    # pylint: disable=fixme
     # TODO: Check if we need to set the local file path in a better way.
     yield None
 
@@ -42,7 +45,7 @@ def test_fonctionnel():
 
     # Test the forecast update date and time. It should be near today.
     test_date = (datetime.datetime.now()
-                - zone.date_mise_a_jour) < datetime.timedelta(days=1)
+                 - zone.date_mise_a_jour) < datetime.timedelta(days=1)
 
     # Test if the URL url_pour_en_savoir_plus is available
     test_url = urlopen(zone.url_pour_en_savoir_plus).getcode() == 200
@@ -57,17 +60,20 @@ def test_fonctionnel():
             test_synthese) == (True, True, True, True)
 
 def test_url_innaccessible(fix_donnees_innaccessibles):
+    """URL unavailable test"""
     zone = ZoneAlerte('32')
 
     # Test the forecast update date and time. It should be near today.
-    test_date = zone.date_mise_a_jour ==  None
+    test_date = zone.date_mise_a_jour is None
 
     # Test to check if there is a overall criticity color for the department
     test_couleur = zone.synthese_couleur == 'Inconnue'
 
     # Test the synthesis message
-    test_synthese_text = zone.message_de_synthese('text') == "Impossible de récupérer l'information"
-    test_synthese_html = zone.message_de_synthese('html') == "<p>Impossible de récupérer l'infmation</p>"
+    test_synthese_text = zone.message_de_synthese('text')\
+                         == "Impossible de récupérer l'information"
+    test_synthese_html = zone.message_de_synthese('html')\
+                         == "<p>Impossible de récupérer l'infmation</p>"
 
     assert (test_date, test_couleur,
             test_synthese_text, test_synthese_html) == (True, True, True, True)
@@ -113,31 +119,31 @@ def test_risque_cotier(fix_donnees_locales):
     assert zone.__repr__() == resultat_attendu
 
 
-@pytest.mark.parametrize('format', ['text', 'html'])
-def test_message_de_syntheseVert(fix_donnees_locales, format):
+@pytest.mark.parametrize('msg_format', ['text', 'html'])
+def test_message_de_synthese_vert(fix_donnees_locales, msg_format):
     """Test syntesis message when no active alert."""
     zone = ZoneAlerte('34')
-    if format == 'text':
+    if msg_format == 'text':
         resultat_attendu = "Aucune alerte météo en cours."
-    elif format == 'html':
+    elif msg_format == 'html':
         resultat_attendu = "<p>Aucune alerte météo en cours.</p>"
-    assert zone.message_de_synthese(format) == resultat_attendu
+    assert zone.message_de_synthese(msg_format) == resultat_attendu
 
 
-@pytest.mark.parametrize('format', ['text', 'html'])
-def test_message_de_synthese_avec_alerte(fix_donnees_locales, format):
+@pytest.mark.parametrize('msg_format', ['text', 'html'])
+def test_message_de_synthese_alerte(fix_donnees_locales, msg_format):
     """Test synthesis message when at least one active alert"""
     zone = ZoneAlerte('2A')
-    if format == 'text':
+    if msg_format == 'text':
         resultat_attendu = "Alerte météo Jaune en cours :"\
                           "\n - Avalanches: Jaune"\
                           "\n - Orages: Jaune"\
                           "\n - Pluie-innodation: Jaune"\
                           "\n - Vagues-submersion: Jaune"
-    elif format == 'html':
+    elif msg_format == 'html':
         resultat_attendu = "<p>Alerte météo Jaune en cours :</p><ul>"\
                           "<li>Avalanches: Jaune</li>"\
                           "<li>Orages: Jaune</li>"\
                           "<li>Pluie-innodation: Jaune</li>"\
                           "<li>Vagues-submersion: Jaune</li></ul>"
-    assert zone.message_de_synthese(format) == resultat_attendu
+    assert zone.message_de_synthese(msg_format) == resultat_attendu
