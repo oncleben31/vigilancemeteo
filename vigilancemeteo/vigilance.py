@@ -1,8 +1,71 @@
 # coding: utf-8
 """Implement a class for Météofrance weather alerts """
-import datetime
+import sys
+import re
+from datetime import datetime
 from lxml import etree
 
+# Manage differences beetween python 2.7 and 3.6
+if sys.version_info < (3, 0):
+    from urllib2 import urlopen #pylint: disable=import-error
+else:
+    from urllib.request import urlopen
+
+class VigilanceMeteoFranceProxy(object):
+    """Class to manage the download of the data sources on MeteoFrance website.""" 
+
+    # URL used to fetch data on Météo France website.
+    URL_VIGILANCE_METEO_XML = "http://vigilance.meteofrance.com"\
+                         "/data/NXFR33_LFPW_.xml"
+    # URL_VIGILANCE_METEO_XML = "./tests/NXFR33_LFPW_.xml" #for local tests.
+
+    # URL used to check if there were any updates since last check
+    URL_VIGILANCE_METEO_CHECKSUM = "http://vigilance.meteofrance.com"\
+                         "/data/vigilance_controle.txt"
+    # URL_VIGILANCE_METEO_CHECKSUM = "./tests/vigilance_controle.txt" #for local tests
+                          
+    def __init__(self):
+        """Class instance constructor."""
+        self._xml_tree = None
+        self._latest_check_date = None
+        self._latest_checksum_value = None
+
+    def _get_new_checksum(self):
+        """Return the checksum of the data source on MétéoFrance website"""
+        # download checksum if not yet done or done since 60 secondes
+        if (self._latest_check_date is None) or (datetime.now() - self._latest_check_date).seconds > 60:
+            # Update latest check date.
+            self._latest_check_date = datetime.now()
+
+            # get checksum in vigilance_controle.txt
+            # TODO: Add error management
+            text = urlopen(VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_CHECKSUM).read().decode('utf-8')
+            checksum = re.search(r'\n(.+?)\s', text)
+            if checksum:
+                 return checksum.group(1)
+        else: 
+            # No need to check so return previous value
+            return self._latest_checksum_value
+    
+    def update_data(self):
+        """Download an update of the XML data source only if needed"""
+        # Download only if the checksum have change since latest update.
+        current_checksum = self._get_new_checksum
+        if current_checksum != self._latest_checksum_value:
+            # TODO: catch error and define what to do if no answer
+            # TODO: do we return status?
+            self._latest_checksum_value = current_checksum
+            self._xml_tree = etree.parse(VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML) #pylint disable=c-extension-no-member
+    
+    @property
+    def xml_tree(self):
+        """Getter of xml_tree attribute."""
+        return self._xml_tree
+    
+    @property
+    def checksum(self):
+        """Getter for _latest_checksum_value"""
+        return self._latest_checksum_value
 
 class ZoneAlerte(object):
     """A Class to descripe French departments weather alerts.
@@ -72,22 +135,24 @@ class ZoneAlerte(object):
         '80', '81', '82', '83', '84', '85', '86', '87', '88', '89',
         '90', '91', '92', '93', '94', '95', '99']
 
-    # URL used to fetch data on Météo France website.
-    URL_VIGILANCE_METEO = "http://vigilance.meteofrance.com"\
-                          "/data/NXFR33_LFPW_.xml"
-    # URL_VIGILANCE_METEO = "./tests/NXFR33_LFPW_.xml" #for local tests.
+    def __init__(self, departement, vmf_proxy=None):
+        """Class instance constructor.
 
-    def __init__(self, departement):
-        """Class constructor.
-
-        Expect to have the department number as a 2 character String. Can be
-        between 01 and 95, 2A, 2B or 99 (for Andorre).
+        Expect to have two arguments:
+         - The department (Required) number as a 2 character String. Can be between 01 and 95,
+           2A, 2B or 99 (for Andorre).
+         - a VigilanceMeteoFranceProxy object (optional) to manage de communication with the
+           Météo France online source.
         """
 
         # Variables init
         self._date_mise_a_jour = None
         self._liste_alertes = {}
         self._departement = None
+        if vmf_proxy is not None:
+            self._viglance_MF_proxy = vmf_proxy
+        else:
+            self._viglance_MF_proxy = VigilanceMeteoFranceProxy()
 
         # Check _departement variable using the property.
         # Warning the setter launch mise_a_jour_etat() methods.
@@ -107,12 +172,15 @@ class ZoneAlerte(object):
 
         # Fetch data on Météo France website
         try:
-            tree = etree.parse(ZoneAlerte.URL_VIGILANCE_METEO) #pylint disable=c-extension-no-member
+            self._viglance_MF_proxy.update_data()
+            tree = self._viglance_MF_proxy.xml_tree
+            # TODO: add a check on checksum to avoid xml processing if no update
         except (OSError, IOError):
             # If error during reading the data on the website, all the
             # attribues are reset.
             self._date_mise_a_jour = None
             self._liste_alertes = {}
+            # TODO: review of the logic in case of HTTP request error
         else:
             # Get the active alerts for the specific department
             alertes_standards = tree.xpath("/CV/DV[attribute::dep='" +
@@ -146,7 +214,7 @@ class ZoneAlerte(object):
             heure = int(string_date[8:10])
             minute = int(string_date[10:12])
             seconde = int(string_date[12:14])
-            self._date_mise_a_jour = datetime.datetime(annee, mois, jour,
+            self._date_mise_a_jour = datetime(annee, mois, jour,
                                                        heure, minute, seconde)
 
     def _mise_a_jour_alerte(self, type_risque, couleur):
@@ -258,7 +326,7 @@ class ZoneAlerte(object):
         """
         # Check the valide values for department
         if departement not in ZoneAlerte.LISTE_DEPARTEMENT_VALIDE:
-            raise ValueError("Departement parameter have to be a 2 character"
+            raise ValueError("Departement parameter have to be a 2 characters string"
                              "between '01' and '95' or '2A' or '2B' or '99'."
                              "Used value: {}".format(departement))
 

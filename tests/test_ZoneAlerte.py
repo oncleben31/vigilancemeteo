@@ -1,11 +1,11 @@
 # coding: utf-8
 # pylint: disable= unused-argument, redefined-outer-name
-"""tests for vigilance module"""
+"""tests for vigilance module - ZoneAlerte"""
 import datetime
 import sys
 import pytest
 
-from vigilancemeteo import ZoneAlerte
+from vigilancemeteo import ZoneAlerte, VigilanceMeteoFranceProxy
 
 # Manage differences beetween python 2.7 and 3.6
 if sys.version_info < (3, 0):
@@ -18,26 +18,26 @@ else:
 def fix_donnees_locales():
     """Fixture to replace webiste answer by a local one."""
     # Using local answer instead of MeteoFrance website
-    valeur_initiale = ZoneAlerte.URL_VIGILANCE_METEO
-    ZoneAlerte.URL_VIGILANCE_METEO = "./tests/NXFR33_LFPW_.xml"
+    valeur_initiale = VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML
+    VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML = "./tests/NXFR33_LFPW_.xml"
     # pylint: disable=fixme
     # TODO: Check if we need to set the local file path in a better way.
     yield None
 
     # Set back the initial value(using website instead of local answer)
-    ZoneAlerte.URL_VIGILANCE_METEO = valeur_initiale
+    VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML = valeur_initiale
 
 @pytest.yield_fixture()
 def fix_donnees_innaccessibles():
     """Fixture to replace webiste answer by an inaxessible one."""
     # Using local answer instead of MeteoFrance website
-    valeur_initiale = ZoneAlerte.URL_VIGILANCE_METEO
-    ZoneAlerte.URL_VIGILANCE_METEO = "http://vigilance.meteofrance.com"\
+    valeur_initiale = VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML
+    VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML = "http://vigilance.meteofrance.com"\
                           "/data/fake_test.xml"
     yield None
 
     # Set back the initial value(using website instead of local answer)
-    ZoneAlerte.URL_VIGILANCE_METEO = valeur_initiale
+    VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML = valeur_initiale
 
 def test_fonctionnel():
     """Fonctional test"""
