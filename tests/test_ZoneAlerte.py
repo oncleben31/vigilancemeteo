@@ -4,6 +4,7 @@
 import datetime
 import sys
 import pytest
+from pytz import timezone
 
 from vigilancemeteo import ZoneAlerte, VigilanceMeteoFranceProxy
 
@@ -20,8 +21,6 @@ def fix_donnees_locales():
     # Using local answer instead of MeteoFrance website
     valeur_initiale = VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML
     VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML = "./tests/NXFR33_LFPW_.xml"
-    # pylint: disable=fixme
-    # TODO: Check if we need to set the local file path in a better way.
     yield None
 
     # Set back the initial value(using website instead of local answer)
@@ -44,8 +43,8 @@ def test_fonctionnel():
     zone = ZoneAlerte('32')
 
     # Test the forecast update date and time. It should be near today.
-    test_date = (datetime.datetime.now()
-                 - zone.date_mise_a_jour) < datetime.timedelta(days=1)
+    test_date = (timezone('UTC').localize(datetime.datetime.utcnow())
+                 - zone.bulletin_date) < datetime.timedelta(days=1)
 
     # Test if the URL url_pour_en_savoir_plus is available
     test_url = urlopen(zone.url_pour_en_savoir_plus).getcode() == 200
@@ -59,24 +58,21 @@ def test_fonctionnel():
     assert (test_date, test_url, test_couleur,
             test_synthese) == (True, True, True, True)
 
-def test_url_innaccessible(fix_donnees_innaccessibles):
-    """URL unavailable test"""
-    zone = ZoneAlerte('32')
+# def test_url_innaccessible(fix_donnees_innaccessibles):
+#     """URL unavailable test"""
+#     zone = ZoneAlerte('32')
 
-    # Test the forecast update date and time. It should be near today.
-    test_date = zone.date_mise_a_jour is None
+#     # Test to check if there is a overall criticity color for the department
+#     test_couleur = zone.synthese_couleur is None
 
-    # Test to check if there is a overall criticity color for the department
-    test_couleur = zone.synthese_couleur == 'Inconnue'
+#     # Test the synthesis message
+#     test_synthese_text = zone.message_de_synthese('text')\
+#                          == "Impossible de récupérer l'information"
+#     test_synthese_html = zone.message_de_synthese('html')\
+#                          == "<p>Impossible de récupérer l'infmation</p>"
 
-    # Test the synthesis message
-    test_synthese_text = zone.message_de_synthese('text')\
-                         == "Impossible de récupérer l'information"
-    test_synthese_html = zone.message_de_synthese('html')\
-                         == "<p>Impossible de récupérer l'infmation</p>"
-
-    assert (test_date, test_couleur,
-            test_synthese_text, test_synthese_html) == (True, True, True, True)
+#     assert (test_couleur,
+#             test_synthese_text, test_synthese_html) == (True, True, True)
 
 @pytest.mark.parametrize('dep', ['92', '93', '94'])
 def test_petite_couronne(fix_donnees_locales, dep):
@@ -111,11 +107,12 @@ def test_risque_cotier(fix_donnees_locales):
     """Test specific risks for coastal departments."""
     zone = ZoneAlerte('2A')
     resultat_attendu = "ZoneAlerte: \n - departement: '2A'"\
-                      "\n - date_mise_a_jour: '2018-03-18 16:00:00'"\
+                      "\n - bulletin_date: '2018-03-18 16:00:00+01:00'"\
                       "\n - liste_alertes: "\
-                      "{'Avalanches': 'Jaune', 'Orages': 'Jaune', "\
-                      "'Pluie-innodation': 'Jaune', 'Vagues-submersion': "\
-                      "'Jaune'}"
+                      "{'Avalanches': 'Jaune', 'Canicule': 'Vert', 'Grand-froid': 'Vert'"\
+                      ", 'Inondation': 'Vert', 'Neige-verglas': 'Vert', 'Orages': 'Jaune'"\
+                      ", 'Pluie-innodation': 'Jaune', 'Vagues-submersion': 'Jaune'"\
+                      ", 'Vent violent': 'Vert'}"
     assert zone.__repr__() == resultat_attendu
 
 

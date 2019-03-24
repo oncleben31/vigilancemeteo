@@ -4,6 +4,8 @@ import sys
 import re
 from datetime import datetime
 from lxml import etree
+from pytz import timezone
+
 
 # Manage differences beetween python 2.7 and 3.6
 if sys.version_info < (3, 0):
@@ -12,7 +14,7 @@ else:
     from urllib.request import urlopen
 
 class VigilanceMeteoFranceProxy(object):
-    """Class to manage the download of the data sources on MeteoFrance website.""" 
+    """Class to manage the download of the data sources from MeteoFrance website.""" 
 
     # URL used to fetch data on Météo France website.
     URL_VIGILANCE_METEO_XML = "http://vigilance.meteofrance.com"\
@@ -29,6 +31,7 @@ class VigilanceMeteoFranceProxy(object):
         self._xml_tree = None
         self._latest_check_date = None
         self._latest_checksum_value = None
+        self._bulletin_date = None
 
     def _get_new_checksum(self):
         """Return the checksum of the data source on MétéoFrance website"""
@@ -54,9 +57,26 @@ class VigilanceMeteoFranceProxy(object):
         if current_checksum != self._latest_checksum_value:
             # TODO: catch error and define what to do if no answer
             # TODO: do we return status?
+            # Save the new checksum
             self._latest_checksum_value = current_checksum
+            
+            # Save the new xml source
             self._xml_tree = etree.parse(VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML) #pylint disable=c-extension-no-member
     
+            # Get the weather bulletin date & time
+            string_date = self._xml_tree.xpath("/CV/EV")[0].get('dateinsert')
+
+            # Convert the string in date and time with Europe/Paris timezone
+            annee = int(string_date[0:4])
+            mois = int(string_date[4:6])
+            jour = int(string_date[6:8])
+            heure = int(string_date[8:10])
+            minute = int(string_date[10:12])
+            seconde = int(string_date[12:14])
+            paris_timezone = timezone('Europe/Paris')
+            self._bulletin_date = paris_timezone.localize(datetime(annee, mois, jour,
+                                                                   heure, minute, seconde))
+
     @property
     def xml_tree(self):
         """Getter of xml_tree attribute."""
@@ -67,6 +87,11 @@ class VigilanceMeteoFranceProxy(object):
         """Getter for _latest_checksum_value"""
         return self._latest_checksum_value
 
+    @property
+    def bulletin_date(self):
+        """Getter for _bulletin_date"""
+        return self._bulletin_date
+
 class ZoneAlerte(object):
     """A Class to descripe French departments weather alerts.
 
@@ -74,8 +99,6 @@ class ZoneAlerte(object):
 
     Private attributes from ZoneAlerte class:
     - _departement: The department watched
-    - _date_mise_a_jour: Date and time of the weather forcast update from
-      MétéoFrance
     - _liste_alertes: A dictionary with all the alerts. Keys for alert type and
       value for criticity (by color).
 
@@ -90,7 +113,7 @@ class ZoneAlerte(object):
     - synthese_couleur: return the overall criticity color for the department
     - url_pour_en_savoir_plus: return the URL to access more information about
       department weather alerts from the MétéoFrance website.
-    - date_mise_a_jour: return latest bulletin update date & time
+    - bulletin_date: return latest bulletin update date & time with timezone
     - departement: Get or set the departement number corresponding to the area
       watched.
     - liste_alertes: return the list of active alerts
@@ -114,7 +137,7 @@ class ZoneAlerte(object):
     # Alert criticity
     LISTE_COULEUR_ALERTE = ['Vert', 'Jaune', 'Orange', 'Rouge']
     # Alert type
-    LISTE_TYPE_ALERTE = ['Vent violent', 'Pluie-innodation', 'Orages',
+    ALERT_TYPE_LIST = ['Vent violent', 'Pluie-innodation', 'Orages',
                          'Inondation', 'Neige-verglas', 'Canicule',
                          'Grand-froid', 'Avalanches', 'Vagues-submersion']
     # Coastal Departments list
@@ -138,15 +161,14 @@ class ZoneAlerte(object):
     def __init__(self, departement, vmf_proxy=None):
         """Class instance constructor.
 
-        Expect to have two arguments:
+        2 arguments expected:
          - The department (Required) number as a 2 character String. Can be between 01 and 95,
            2A, 2B or 99 (for Andorre).
-         - a VigilanceMeteoFranceProxy object (optional) to manage de communication with the
+         - a VigilanceMeteoFranceProxy object (Optional) to manage de communication with the
            Météo France online source.
         """
 
         # Variables init
-        self._date_mise_a_jour = None
         self._liste_alertes = {}
         self._departement = None
         if vmf_proxy is not None:
@@ -163,12 +185,13 @@ class ZoneAlerte(object):
 
         get the alert color for the 9 different types on the Météo France
         website and update the variable 'liste_alertes'.
-        Get date and time of the buletin update on the Météo France website and
-        update the variable '_date_mise_a_jour'.
         """
 
-        # Empty the alerts list
+        # Set initial value for each alert type in the list
         self._liste_alertes = {}
+        # TODO: chose an order for the list
+        for alert_type in ZoneAlerte.ALERT_TYPE_LIST:
+            self._mise_a_jour_alerte(alert_type, 'Vert')
 
         # Fetch data on Météo France website
         try:
@@ -178,7 +201,6 @@ class ZoneAlerte(object):
         except (OSError, IOError):
             # If error during reading the data on the website, all the
             # attribues are reset.
-            self._date_mise_a_jour = None
             self._liste_alertes = {}
             # TODO: review of the logic in case of HTTP request error
         else:
@@ -201,21 +223,9 @@ class ZoneAlerte(object):
                 for risque in list(alertes_du_departement):
                     type_risque = int(risque.get('val'))
                     # Update the instance variable with the alert list
-                    self._mise_a_jour_alerte(ZoneAlerte.LISTE_TYPE_ALERTE[type_risque - 1],
+                    self._mise_a_jour_alerte(ZoneAlerte.ALERT_TYPE_LIST[type_risque - 1],
                                              ZoneAlerte.LISTE_COULEUR_ALERTE[couleur - 1])
 
-            # Get the date and time of the buletin update
-            string_date = tree.xpath("/CV/EV")[0].get('dateinsert')
-
-            # Convert the string in date and time
-            annee = int(string_date[0:4])
-            mois = int(string_date[4:6])
-            jour = int(string_date[6:8])
-            heure = int(string_date[8:10])
-            minute = int(string_date[10:12])
-            seconde = int(string_date[12:14])
-            self._date_mise_a_jour = datetime(annee, mois, jour,
-                                                       heure, minute, seconde)
 
     def _mise_a_jour_alerte(self, type_risque, couleur):
         """Update on alert type."""
@@ -230,9 +240,9 @@ class ZoneAlerte(object):
             liste_alertes_ordonnee = liste_alertes_ordonnee +\
                                   "'{}': '{}', ".\
                                   format(key, self.liste_alertes[key])
-        return "ZoneAlerte: \n - departement: '{}'\n - date_mise_a_jour: '{}'"\
+        return "ZoneAlerte: \n - departement: '{}'\n - bulletin_date: '{}'"\
                "\n - liste_alertes: {{{}}}".format(self._departement,
-                                                   self._date_mise_a_jour,
+                                                   self.bulletin_date,
                                                    liste_alertes_ordonnee[:-2])
 
     @property
@@ -247,12 +257,11 @@ class ZoneAlerte(object):
             synthese = 'Orange'
         elif any(alerte == 'Jaune' for alerte in self.liste_alertes.values()):
             synthese = 'Jaune'
-        elif self.date_mise_a_jour is None:
-            # if update date is None it's mean we ahd issue getting
-            # the information.
-            synthese = 'Inconnue'
-        else:
+        elif all(alerte == 'Vert' for alerte in self.liste_alertes.values()):
             synthese = 'Vert'
+        else:
+            # return None if we had issue to get the data
+            synthese = None
         return synthese
 
     @property
@@ -272,7 +281,7 @@ class ZoneAlerte(object):
                 message = "Aucune alerte météo en cours."
             elif msg_format == 'html':
                 message = "<p>Aucune alerte météo en cours.</p>"
-        elif self.synthese_couleur == 'Inconnue':
+        elif self.synthese_couleur is None:
             if msg_format == 'text':
                 message = "Impossible de récupérer l'information"
             if msg_format == 'html':
@@ -284,9 +293,9 @@ class ZoneAlerte(object):
                 # Order the dictionary keys ecause before python 3.6 keys are
                 # not ordered
                 for type_risque in sorted(self.liste_alertes.keys()):
-                    message = message + "\n - {}: {}"\
-                              .format(type_risque,
-                                      self.liste_alertes[type_risque])
+                    if self.liste_alertes[type_risque] != 'Vert':
+                        message = message + "\n - {}: {}"\
+                            .format(type_risque, self.liste_alertes[type_risque])
             elif msg_format == 'html':
                 message = \
                     "<p>Alerte météo {} en cours :"\
@@ -294,16 +303,16 @@ class ZoneAlerte(object):
                 # Order the dictionary keys ecause before python 3.6 keys are
                 # not ordered
                 for type_risque in sorted(self.liste_alertes.keys()):
-                    message = message + "<li>{}: {}</li>"\
-                              .format(type_risque,
-                                      self.liste_alertes[type_risque])
+                    if self.liste_alertes[type_risque] != 'Vert':
+                        message = message + "<li>{}: {}</li>"\
+                            .format(type_risque, self.liste_alertes[type_risque])
                 message = message + '</ul>'
         return message
 
     @property
-    def date_mise_a_jour(self):
+    def bulletin_date(self):
         """Accessor and setter for Update date"""
-        return self._date_mise_a_jour
+        return self._viglance_MF_proxy.bulletin_date
 
     @property
     def liste_alertes(self):

@@ -22,7 +22,7 @@ REQUIRES_PYTHON = '>=2.7.0'
 VERSION = None
 
 # What packages are required for this module to be executed?
-REQUIRED = ['lxml']
+REQUIRED = ['lxml','pytz']
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
