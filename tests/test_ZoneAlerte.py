@@ -7,6 +7,7 @@ import pytest
 from pytz import timezone
 
 from vigilancemeteo import ZoneAlerte, VigilanceMeteoFranceProxy
+from vigilancemeteo.constants import ALERT_COLOR_LIST
 
 # Manage differences beetween python 2.7 and 3.6
 if sys.version_info < (3, 0):
@@ -50,7 +51,7 @@ def test_fonctionnel():
     test_url = urlopen(zone.url_pour_en_savoir_plus).getcode() == 200
 
     # Test to check if there is a overall criticity color for the department
-    test_couleur = zone.synthese_couleur in ZoneAlerte.LISTE_COULEUR_ALERTE
+    test_couleur = zone.department_color in ALERT_COLOR_LIST
 
     # Test the synthesis message
     test_synthese = zone.message_de_synthese is not None
@@ -84,7 +85,7 @@ def test_petite_couronne(fix_donnees_locales, dep):
     """
 
     zone = ZoneAlerte(dep)
-    assert zone.departement == '75'
+    assert zone.department == '75'
 
 
 @pytest.mark.parametrize('dep', [75, '2', 'bonjour', 1.5, '98', True, None])
@@ -94,13 +95,13 @@ def test_departement_non_valide(fix_donnees_locales, dep):
         ZoneAlerte(dep)
 
 
-@pytest.mark.parametrize("dep, coul",
+@pytest.mark.parametrize("department, color",
                          [('2A', 'Jaune'), ('07', 'Vert'),
                           ('95', 'Orange'), ('32', 'Rouge')])
-def test_couleur_synthese(fix_donnees_locales, dep, coul):
+def test_department_color(fix_donnees_locales, department, color):
     """Test synthesis property."""
-    zone = ZoneAlerte(dep)
-    assert zone.synthese_couleur == coul
+    zone = ZoneAlerte(department)
+    assert zone.department_color == color
 
 
 def test_risque_cotier(fix_donnees_locales):
@@ -108,7 +109,7 @@ def test_risque_cotier(fix_donnees_locales):
     zone = ZoneAlerte('2A')
     resultat_attendu = "ZoneAlerte: \n - departement: '2A'"\
                       "\n - bulletin_date: '2018-03-18 16:00:00+01:00'"\
-                      "\n - liste_alertes: "\
+                      "\n - alerts_list: "\
                       "{'Avalanches': 'Jaune', 'Canicule': 'Vert', 'Grand-froid': 'Vert'"\
                       ", 'Inondation': 'Vert', 'Neige-verglas': 'Vert', 'Orages': 'Jaune'"\
                       ", 'Pluie-innodation': 'Jaune', 'Vagues-submersion': 'Jaune'"\

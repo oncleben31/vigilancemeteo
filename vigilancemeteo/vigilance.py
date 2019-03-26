@@ -5,13 +5,15 @@ import re
 from datetime import datetime
 from lxml import etree
 from pytz import timezone
-
+from vigilancemeteo.constants import ALERT_COLOR_LIST, VALID_DEPARTMENT_LIST
 
 # Manage differences beetween python 2.7 and 3.6
 if sys.version_info < (3, 0):
     from urllib2 import urlopen #pylint: disable=import-error
 else:
     from urllib.request import urlopen
+
+ # TODO: split the classes in 2 files
 
 class VigilanceMeteoFranceProxy(object):
     """Class to manage the download of the data sources from MeteoFrance website.""" 
@@ -25,7 +27,18 @@ class VigilanceMeteoFranceProxy(object):
     URL_VIGILANCE_METEO_CHECKSUM = "http://vigilance.meteofrance.com"\
                          "/data/vigilance_controle.txt"
     # URL_VIGILANCE_METEO_CHECKSUM = "./tests/vigilance_controle.txt" #for local tests
-                          
+
+     # Alert type
+    ALERT_TYPE_LIST = ['Vent violent', 'Pluie-innodation', 'Orages',
+                         'Inondation', 'Neige-verglas', 'Canicule',
+                         'Grand-froid', 'Avalanches', 'Vagues-submersion']
+ 
+    # Area code list for Coastal Departments
+    COASTAL_DEPARTMENT_LIST= [
+        '06', '11', '13', '14', '17', '22', '29', '2A', '2B', '30', '33', '34',
+        '35', '40', '44', '50', '56', '59', '62', '64', '66', '76', '80', '83',
+        '85']
+
     def __init__(self):
         """Class instance constructor."""
         self._xml_tree = None
@@ -77,6 +90,41 @@ class VigilanceMeteoFranceProxy(object):
             self._bulletin_date = paris_timezone.localize(datetime(annee, mois, jour,
                                                                    heure, minute, seconde))
 
+    def get_alert_list(self, department):
+        """Return the list and status of the alerts for a given department."""
+
+        # update data
+        self.update_data()
+        
+        # Set initial value for each alert type in the list
+        alerts_list = {}
+        for alert_type in VigilanceMeteoFranceProxy.ALERT_TYPE_LIST:
+            alerts_list[alert_type] = 'Vert'
+
+        # Get the active alerts for the specific department
+        department_alerts = self.xml_tree.xpath("/CV/DV[attribute::dep='"
+                                                + department + "']")
+
+        # Get the additional active alerts if it is a coastal department
+        if department in VigilanceMeteoFranceProxy.COASTAL_DEPARTMENT_LIST:
+            department_alerts.extend(self.xml_tree.xpath("/CV/DV[attribute::dep='"
+                                                         + department + "10']"))
+
+        # Identify each active alert and the color associated (criticity).
+        # They are grouped by color
+        for alerts_group in department_alerts:
+            # Get the color of the alert group
+            color = int(alerts_group.get('coul'))
+
+            # Get all the active alerts in the group
+            for active_alert in list(alerts_group):
+                alert_type = int(active_alert.get('val'))
+                # Update the instance variable with the alert list
+                alerts_list[VigilanceMeteoFranceProxy.ALERT_TYPE_LIST[alert_type - 1]]\
+                    = ALERT_COLOR_LIST[color - 1]
+                
+        return alerts_list
+
     @property
     def xml_tree(self):
         """Getter of xml_tree attribute."""
@@ -98,8 +146,8 @@ class ZoneAlerte(object):
     Data are fetch ont vigilance.meteofrance.com website.
 
     Private attributes from ZoneAlerte class:
-    - _departement: The department watched
-    - _liste_alertes: A dictionary with all the alerts. Keys for alert type and
+    - _department: The department watched
+    - _alerts_list: A dictionary with all the alerts. Keys for alert type and
       value for criticity (by color).
 
     Methods from ZoneAlerte class:
@@ -110,18 +158,18 @@ class ZoneAlerte(object):
       parameter, the string return change: 'text' (default) or 'html'
 
     Public attributes  from ZoneAlerte class
-    - synthese_couleur: return the overall criticity color for the department
+    - department_color: return the overall criticity color for the department
     - url_pour_en_savoir_plus: return the URL to access more information about
       department weather alerts from the MétéoFrance website.
     - bulletin_date: return latest bulletin update date & time with timezone
     - departement: Get or set the departement number corresponding to the area
       watched.
-    - liste_alertes: return the list of active alerts
+    - alerts_list: return the list of active alerts
 
     Example:
     >>>import vigilancemeteo
     >>>zone = vigilancemeteo.ZoneAlerte('92')
-    >>>zone.synthese_couleur
+    >>>zone.department_color
     'Vert'
     >>>zone.urlPourEnSavoirPlus
     'http://vigilance.meteofrance.com/Bulletin_sans.html?a=dept75&b=1&c='
@@ -134,31 +182,8 @@ class ZoneAlerte(object):
     # TODO: Add markdown format.
 
     # enums used in this class. Warning first indice is 0
-    # Alert criticity
-    LISTE_COULEUR_ALERTE = ['Vert', 'Jaune', 'Orange', 'Rouge']
-    # Alert type
-    ALERT_TYPE_LIST = ['Vent violent', 'Pluie-innodation', 'Orages',
-                         'Inondation', 'Neige-verglas', 'Canicule',
-                         'Grand-froid', 'Avalanches', 'Vagues-submersion']
-    # Coastal Departments list
-    LISTE_DEPARTEMENT_LITTORAL = [
-        '06', '11', '13', '14', '17', '22', '29', '2A', '2B', '30', '33', '34',
-        '35', '40', '44', '50', '56', '59', '62', '64', '66', '76', '80', '83',
-        '85']
-    # Valide departments list
-    LISTE_DEPARTEMENT_VALIDE = [
-        '01', '02', '03', '04', '05', '06', '07', '08', '09',
-        '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
-        '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2A', '2B',
-        '30', '31', '32', '33', '34', '35', '36', '37', '38', '39',
-        '40', '41', '42', '43', '44', '45', '46', '47', '48', '49',
-        '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
-        '60', '61', '62', '63', '64', '65', '66', '67', '68', '69',
-        '70', '71', '72', '73', '74', '75', '76', '77', '78', '79',
-        '80', '81', '82', '83', '84', '85', '86', '87', '88', '89',
-        '90', '91', '92', '93', '94', '95', '99']
 
-    def __init__(self, departement, vmf_proxy=None):
+    def __init__(self, department, vmf_proxy=None):
         """Class instance constructor.
 
         2 arguments expected:
@@ -169,100 +194,57 @@ class ZoneAlerte(object):
         """
 
         # Variables init
-        self._liste_alertes = {}
-        self._departement = None
+        self._alerts_list = {}
+        self._department = None
         if vmf_proxy is not None:
             self._viglance_MF_proxy = vmf_proxy
         else:
             self._viglance_MF_proxy = VigilanceMeteoFranceProxy()
 
-        # Check _departement variable using the property.
+        # Check _department variable using the property.
         # Warning the setter launch mise_a_jour_etat() methods.
-        self.departement = departement
+        self.department = department
 
-    def mise_a_jour_etat(self):
+    def update_department_status(self):
         """Fetch active weather alerts for the department.
 
         get the alert color for the 9 different types on the Météo France
-        website and update the variable 'liste_alertes'.
+        website and update the variable 'alerts_list'.
         """
-
-        # Set initial value for each alert type in the list
-        self._liste_alertes = {}
-        # TODO: chose an order for the list
-        for alert_type in ZoneAlerte.ALERT_TYPE_LIST:
-            self._mise_a_jour_alerte(alert_type, 'Vert')
-
-        # Fetch data on Météo France website
-        try:
-            self._viglance_MF_proxy.update_data()
-            tree = self._viglance_MF_proxy.xml_tree
-            # TODO: add a check on checksum to avoid xml processing if no update
-        except (OSError, IOError):
-            # If error during reading the data on the website, all the
-            # attribues are reset.
-            self._liste_alertes = {}
-            # TODO: review of the logic in case of HTTP request error
-        else:
-            # Get the active alerts for the specific department
-            alertes_standards = tree.xpath("/CV/DV[attribute::dep='" +
-                                           self._departement + "']")
-            # Get the additional active alerts if it is a coastal department
-            if self._departement in ZoneAlerte.LISTE_DEPARTEMENT_LITTORAL:
-                alertes_standards.extend(tree.xpath("/CV/DV[attribute::dep='"
-                                                    + self._departement +
-                                                    "10']"))
-
-            # Identify each active alert and the color associated (criticity).
-            # They are grouped by color
-            for alertes_du_departement in alertes_standards:
-                # Get the color of the alert group
-                couleur = int(alertes_du_departement.get('coul'))
-
-                # Get all the active alerts in the group
-                for risque in list(alertes_du_departement):
-                    type_risque = int(risque.get('val'))
-                    # Update the instance variable with the alert list
-                    self._mise_a_jour_alerte(ZoneAlerte.ALERT_TYPE_LIST[type_risque - 1],
-                                             ZoneAlerte.LISTE_COULEUR_ALERTE[couleur - 1])
-
-
-    def _mise_a_jour_alerte(self, type_risque, couleur):
-        """Update on alert type."""
-        self._liste_alertes[type_risque] = couleur
+        self._alerts_list = self._viglance_MF_proxy.get_alert_list(self.department)
 
     def __repr__(self):
         """"instance representation"""
         # Order the dictionary keys ecause before python 3.6 keys are not
         # ordered
-        liste_alertes_ordonnee = ""
-        for key in sorted(self.liste_alertes.keys()):
-            liste_alertes_ordonnee = liste_alertes_ordonnee +\
+        alerts_list_ordonnee = ""
+        for key in sorted(self.alerts_list.keys()):
+            alerts_list_ordonnee = alerts_list_ordonnee +\
                                   "'{}': '{}', ".\
-                                  format(key, self.liste_alertes[key])
+                                  format(key, self.alerts_list[key])
         return "ZoneAlerte: \n - departement: '{}'\n - bulletin_date: '{}'"\
-               "\n - liste_alertes: {{{}}}".format(self._departement,
+               "\n - alerts_list: {{{}}}".format(self._department,
                                                    self.bulletin_date,
-                                                   liste_alertes_ordonnee[:-2])
+                                                   alerts_list_ordonnee[:-2])
 
     @property
-    def synthese_couleur(self):
+    def department_color(self):
         """Get the department color.
 
         It's the color of the most critical alert.
         """
-        if any(alerte == 'Rouge' for alerte in self.liste_alertes.values()):
-            synthese = 'Rouge'
-        elif any(alerte == 'Orange' for alerte in self.liste_alertes.values()):
-            synthese = 'Orange'
-        elif any(alerte == 'Jaune' for alerte in self.liste_alertes.values()):
-            synthese = 'Jaune'
-        elif all(alerte == 'Vert' for alerte in self.liste_alertes.values()):
-            synthese = 'Vert'
+        if any(alert == 'Rouge' for alert in self.alerts_list.values()):
+            synthesis = 'Rouge'
+        elif any(alert == 'Orange' for alert in self.alerts_list.values()):
+            synthesis = 'Orange'
+        elif any(alert == 'Jaune' for alert in self.alerts_list.values()):
+            synthesis = 'Jaune'
+        elif all(alert == 'Vert' for alert in self.alerts_list.values()):
+            synthesis = 'Vert'
         else:
             # return None if we had issue to get the data
-            synthese = None
-        return synthese
+            synthesis = None
+        return synthesis
 
     @property
     def url_pour_en_savoir_plus(self):
@@ -272,16 +254,16 @@ class ZoneAlerte(object):
         about active alerts in the department.
         """
         return "http://vigilance.meteofrance.com/"\
-               "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._departement)
+               "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._department)
 
     def message_de_synthese(self, msg_format='text'):
         """Get synthesis text message to have the list of the active alerts."""
-        if self.synthese_couleur == 'Vert':
+        if self.department_color == 'Vert':
             if msg_format == 'text':
                 message = "Aucune alerte météo en cours."
             elif msg_format == 'html':
                 message = "<p>Aucune alerte météo en cours.</p>"
-        elif self.synthese_couleur is None:
+        elif self.department_color is None:
             if msg_format == 'text':
                 message = "Impossible de récupérer l'information"
             if msg_format == 'html':
@@ -289,23 +271,23 @@ class ZoneAlerte(object):
         else:
             if msg_format == 'text':
                 message = \
-                    "Alerte météo {} en cours :".format(self.synthese_couleur)
+                    "Alerte météo {} en cours :".format(self.department_color)
                 # Order the dictionary keys ecause before python 3.6 keys are
                 # not ordered
-                for type_risque in sorted(self.liste_alertes.keys()):
-                    if self.liste_alertes[type_risque] != 'Vert':
+                for type_risque in sorted(self.alerts_list.keys()):
+                    if self.alerts_list[type_risque] != 'Vert':
                         message = message + "\n - {}: {}"\
-                            .format(type_risque, self.liste_alertes[type_risque])
+                            .format(type_risque, self.alerts_list[type_risque])
             elif msg_format == 'html':
                 message = \
                     "<p>Alerte météo {} en cours :"\
-                    "</p><ul>".format(self.synthese_couleur)
+                    "</p><ul>".format(self.department_color)
                 # Order the dictionary keys ecause before python 3.6 keys are
                 # not ordered
-                for type_risque in sorted(self.liste_alertes.keys()):
-                    if self.liste_alertes[type_risque] != 'Vert':
+                for type_risque in sorted(self.alerts_list.keys()):
+                    if self.alerts_list[type_risque] != 'Vert':
                         message = message + "<li>{}: {}</li>"\
-                            .format(type_risque, self.liste_alertes[type_risque])
+                            .format(type_risque, self.alerts_list[type_risque])
                 message = message + '</ul>'
         return message
 
@@ -315,17 +297,17 @@ class ZoneAlerte(object):
         return self._viglance_MF_proxy.bulletin_date
 
     @property
-    def liste_alertes(self):
+    def alerts_list(self):
         """Accessor and setter for weather alerts list"""
-        return self._liste_alertes
+        return self._alerts_list
 
     @property
-    def departement(self):
+    def department(self):
         """Accessor for area code linked to the weather report"""
-        return self._departement
+        return self._department
 
-    @departement.setter
-    def departement(self, departement):
+    @department.setter
+    def department(self, department):
         """Setter with consitency check on the are code value.
 
         Departemnt variable should be a 2 chararcters string. In the source XML
@@ -334,21 +316,21 @@ class ZoneAlerte(object):
         This setter will call the mise_a_jour_etat() method systematicaly.
         """
         # Check the valide values for department
-        if departement not in ZoneAlerte.LISTE_DEPARTEMENT_VALIDE:
+        if department not in VALID_DEPARTMENT_LIST:
             raise ValueError("Departement parameter have to be a 2 characters string"
                              "between '01' and '95' or '2A' or '2B' or '99'."
-                             "Used value: {}".format(departement))
+                             "Used value: {}".format(department))
 
         # Equivalences list
         equivalence75 = ['92', '93', '94']
-        departement_valide = departement
+        validated_department = department
 
         # Replace, the missing department in the XLM by the equivalence.
-        if departement in equivalence75:
-            departement_valide = '75'
+        if department in equivalence75:
+            validated_department = '75'
 
         # Set the variable
-        self._departement = departement_valide
+        self._department = validated_department
 
         # Call the first update
-        self.mise_a_jour_etat()
+        self.update_department_status()
