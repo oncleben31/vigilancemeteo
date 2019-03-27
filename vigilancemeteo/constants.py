@@ -5,6 +5,12 @@
 # Alert criticity
 ALERT_COLOR_LIST = ['Vert', 'Jaune', 'Orange', 'Rouge']
 
+# Alert type
+ALERT_TYPE_LIST = ['Vent violent', 'Pluie-innodation', 'Orages',
+                   'Inondation', 'Neige-verglas', 'Canicule',
+                   'Grand-froid', 'Avalanches', 'Vagues-submersion']
+
+
 # Valide departments list
 VALID_DEPARTMENT_LIST = [
     '01', '02', '03', '04', '05', '06', '07', '08', '09',
@@ -18,4 +24,11 @@ VALID_DEPARTMENT_LIST = [
     '80', '81', '82', '83', '84', '85', '86', '87', '88', '89',
     '90', '91', '92', '93', '94', '95', '99']
 
-#TODO: add other constants like min duration between two updates equivalent to 75
+# Area code list for Coastal Departments
+COASTAL_DEPARTMENT_LIST= [
+    '06', '11', '13', '14', '17', '22', '29', '2A', '2B', '30', '33', '34',
+    '35', '40', '44', '50', '56', '59', '62', '64', '66', '76', '80', '83',
+    '85']
+
+# Department equivalent to 75
+EQUIVALENCE_75 = ['92', '93', '94']

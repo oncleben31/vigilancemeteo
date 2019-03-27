@@ -1,146 +1,9 @@
 # coding: utf-8
 """Implement a class for Météofrance weather alerts """
-import sys
-import re
-from datetime import datetime
-from lxml import etree
-from pytz import timezone
-from vigilancemeteo.constants import ALERT_COLOR_LIST, VALID_DEPARTMENT_LIST
+from vigilancemeteo import VigilanceMeteoFranceProxy
+from vigilancemeteo.constants import VALID_DEPARTMENT_LIST, EQUIVALENCE_75
 
-# Manage differences beetween python 2.7 and 3.6
-if sys.version_info < (3, 0):
-    from urllib2 import urlopen #pylint: disable=import-error
-else:
-    from urllib.request import urlopen
-
- # TODO: split the classes in 2 files
-
-class VigilanceMeteoFranceProxy(object):
-    """Class to manage the download of the data sources from MeteoFrance website.""" 
-
-    # URL used to fetch data on Météo France website.
-    URL_VIGILANCE_METEO_XML = "http://vigilance.meteofrance.com"\
-                         "/data/NXFR33_LFPW_.xml"
-    # URL_VIGILANCE_METEO_XML = "./tests/NXFR33_LFPW_.xml" #for local tests.
-
-    # URL used to check if there were any updates since last check
-    URL_VIGILANCE_METEO_CHECKSUM = "http://vigilance.meteofrance.com"\
-                         "/data/vigilance_controle.txt"
-    # URL_VIGILANCE_METEO_CHECKSUM = "./tests/vigilance_controle.txt" #for local tests
-
-     # Alert type
-    ALERT_TYPE_LIST = ['Vent violent', 'Pluie-innodation', 'Orages',
-                         'Inondation', 'Neige-verglas', 'Canicule',
-                         'Grand-froid', 'Avalanches', 'Vagues-submersion']
- 
-    # Area code list for Coastal Departments
-    COASTAL_DEPARTMENT_LIST= [
-        '06', '11', '13', '14', '17', '22', '29', '2A', '2B', '30', '33', '34',
-        '35', '40', '44', '50', '56', '59', '62', '64', '66', '76', '80', '83',
-        '85']
-
-    def __init__(self):
-        """Class instance constructor."""
-        self._xml_tree = None
-        self._latest_check_date = None
-        self._latest_checksum_value = None
-        self._bulletin_date = None
-
-    def _get_new_checksum(self):
-        """Return the checksum of the data source on MétéoFrance website"""
-        # download checksum if not yet done or done since 60 secondes
-        if (self._latest_check_date is None) or (datetime.now() - self._latest_check_date).seconds > 60:
-            # Update latest check date.
-            self._latest_check_date = datetime.now()
-
-            # get checksum in vigilance_controle.txt
-            # TODO: Add error management
-            text = urlopen(VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_CHECKSUM).read().decode('utf-8')
-            checksum = re.search(r'\n(.+?)\s', text)
-            if checksum:
-                 return checksum.group(1)
-        else: 
-            # No need to check so return previous value
-            return self._latest_checksum_value
-    
-    def update_data(self):
-        """Download an update of the XML data source only if needed"""
-        # Download only if the checksum have change since latest update.
-        current_checksum = self._get_new_checksum
-        if current_checksum != self._latest_checksum_value:
-            # TODO: catch error and define what to do if no answer
-            # TODO: do we return status?
-            # Save the new checksum
-            self._latest_checksum_value = current_checksum
-            
-            # Save the new xml source
-            self._xml_tree = etree.parse(VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML) #pylint disable=c-extension-no-member
-    
-            # Get the weather bulletin date & time
-            string_date = self._xml_tree.xpath("/CV/EV")[0].get('dateinsert')
-
-            # Convert the string in date and time with Europe/Paris timezone
-            annee = int(string_date[0:4])
-            mois = int(string_date[4:6])
-            jour = int(string_date[6:8])
-            heure = int(string_date[8:10])
-            minute = int(string_date[10:12])
-            seconde = int(string_date[12:14])
-            paris_timezone = timezone('Europe/Paris')
-            self._bulletin_date = paris_timezone.localize(datetime(annee, mois, jour,
-                                                                   heure, minute, seconde))
-
-    def get_alert_list(self, department):
-        """Return the list and status of the alerts for a given department."""
-
-        # update data
-        self.update_data()
-        
-        # Set initial value for each alert type in the list
-        alerts_list = {}
-        for alert_type in VigilanceMeteoFranceProxy.ALERT_TYPE_LIST:
-            alerts_list[alert_type] = 'Vert'
-
-        # Get the active alerts for the specific department
-        department_alerts = self.xml_tree.xpath("/CV/DV[attribute::dep='"
-                                                + department + "']")
-
-        # Get the additional active alerts if it is a coastal department
-        if department in VigilanceMeteoFranceProxy.COASTAL_DEPARTMENT_LIST:
-            department_alerts.extend(self.xml_tree.xpath("/CV/DV[attribute::dep='"
-                                                         + department + "10']"))
-
-        # Identify each active alert and the color associated (criticity).
-        # They are grouped by color
-        for alerts_group in department_alerts:
-            # Get the color of the alert group
-            color = int(alerts_group.get('coul'))
-
-            # Get all the active alerts in the group
-            for active_alert in list(alerts_group):
-                alert_type = int(active_alert.get('val'))
-                # Update the instance variable with the alert list
-                alerts_list[VigilanceMeteoFranceProxy.ALERT_TYPE_LIST[alert_type - 1]]\
-                    = ALERT_COLOR_LIST[color - 1]
-                
-        return alerts_list
-
-    @property
-    def xml_tree(self):
-        """Getter of xml_tree attribute."""
-        return self._xml_tree
-    
-    @property
-    def checksum(self):
-        """Getter for _latest_checksum_value"""
-        return self._latest_checksum_value
-
-    @property
-    def bulletin_date(self):
-        """Getter for _bulletin_date"""
-        return self._bulletin_date
-
-class ZoneAlerte(object):
+class DepartmentWeatherAlert(object):
     """A Class to descripe French departments weather alerts.
 
     Data are fetch ont vigilance.meteofrance.com website.
@@ -176,12 +39,9 @@ class ZoneAlerte(object):
     >>>zone.message_de_synthese
     'Aucune alerte en cours.'
     """
-    # TODO: Check potential encodage issues. # pylint: disable=fixme
     # TODO: Opportunity to add advises and comments from the weather buletin.
     # TODO: Monitor change from one bulletin to another.
     # TODO: Add markdown format.
-
-    # enums used in this class. Warning first indice is 0
 
     def __init__(self, department, vmf_proxy=None):
         """Class instance constructor.
@@ -222,7 +82,7 @@ class ZoneAlerte(object):
             alerts_list_ordonnee = alerts_list_ordonnee +\
                                   "'{}': '{}', ".\
                                   format(key, self.alerts_list[key])
-        return "ZoneAlerte: \n - departement: '{}'\n - bulletin_date: '{}'"\
+        return "DepartmentWeatherAlert: \n - departement: '{}'\n - bulletin_date: '{}'"\
                "\n - alerts_list: {{{}}}".format(self._department,
                                                    self.bulletin_date,
                                                    alerts_list_ordonnee[:-2])
@@ -247,7 +107,7 @@ class ZoneAlerte(object):
         return synthesis
 
     @property
-    def url_pour_en_savoir_plus(self):
+    def additional_info_URL(self):
         """Get the link to have additional info about alerts in department.
 
         Return the vigilance.meteofrance.com URL to get additinonal details
@@ -256,7 +116,7 @@ class ZoneAlerte(object):
         return "http://vigilance.meteofrance.com/"\
                "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._department)
 
-    def message_de_synthese(self, msg_format='text'):
+    def summary_message(self, msg_format='text'):
         """Get synthesis text message to have the list of the active alerts."""
         if self.department_color == 'Vert':
             if msg_format == 'text':
@@ -322,11 +182,10 @@ class ZoneAlerte(object):
                              "Used value: {}".format(department))
 
         # Equivalences list
-        equivalence75 = ['92', '93', '94']
         validated_department = department
 
         # Replace, the missing department in the XLM by the equivalence.
-        if department in equivalence75:
+        if department in EQUIVALENCE_75:
             validated_department = '75'
 
         # Set the variable
