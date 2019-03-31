@@ -3,11 +3,13 @@
 from vigilancemeteo import VigilanceMeteoFranceProxy
 from vigilancemeteo.constants import EQUIVALENCE_75, VALID_DEPARTMENT_LIST
 
+# TODO: review all docstring
+
 
 class DepartmentWeatherAlert(object):
     """A Class to descripe French departments weather alerts.
 
-    Data are fetch ont vigilance.meteofrance.com website.
+    Data are fetch on vigilance.meteofrance.com website.
 
     Private attributes from ZoneAlerte class:
     - _department: The department watched

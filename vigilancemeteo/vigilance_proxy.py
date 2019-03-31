@@ -1,5 +1,5 @@
 # coding: utf-8
-"""class to communicate Météofrance weather alerts website"""
+"""Implement a class to communicate with Météofrance weather alerts website."""
 import re
 import sys
 from datetime import datetime
@@ -20,15 +20,31 @@ if sys.version_info < (3, 0):
 else:
     from urllib.request import urlopen, URLError
 
-# TODO: review all docstring
-
 
 class VigilanceMeteoError(Exception):
-    """Raise when errors occur while fetching or parsing vigilance.meteofrance.com website"""
+    """Error class, used when fetching or parsing vigilance.meteofrance.com website."""
 
 
 class VigilanceMeteoFranceProxy(object):
-    """Class to manage the download of the data sources from MeteoFrance website."""
+    """Class to manage the download of the data sources from MeteoFrance website.
+    
+    Data are fetch on vigilance.meteofrance.com website.
+    
+    Public attributes:
+    - xml_tree = XML representation of the weather alert bulletin
+    - bulletin_date = Date of the bulletin (with timezone)
+    - checksum = Checksum of the weather alert bulletin
+
+    Public Methods:
+    - update_date(): Check if new information are available and download them if any.
+    - get_alert_list(department): of a given department return the list of the alerts.
+ 
+    Private attributes:
+    - _xml_tree = XML representation of the weather alert bulletin
+    - _bulletin_date = Date of the bulletin (with timezone)
+    - _latest_check_date = Date of the latest check if new bulletin is available
+    - _latest_checksum_value = Checksum of the weather alert bulletin
+    """
 
     # URL used to fetch data on Météo France website.
     URL_VIGILANCE_METEO_XML = (
@@ -50,7 +66,13 @@ class VigilanceMeteoFranceProxy(object):
         self._bulletin_date = None
 
     def _get_new_checksum(self):
-        """Return the checksum of the data source on MétéoFrance website"""
+        """Return the checksum of the data source on MétéoFrance website.
+        
+        The checksum allows high frequency requests and downloads data only if 
+        new information are published.
+        If the data source is unvailabe, return the previous checksum if bulletin
+        validity date is still not reached. If the bulletin has expired, raise
+        an VigilanceMeteoError error."""
         # download checksum if not yet done or done since 60 secondes
         if (self._latest_check_date is None) or (
             datetime.now() - self._latest_check_date
@@ -81,11 +103,14 @@ class VigilanceMeteoFranceProxy(object):
             return self._latest_checksum_value
 
     def update_data(self):
-        """Download an update of the XML data source only if needed"""
+        """Downloads an updates of the XML data source only if needed.
+        
+        The methods checks before if the checksum has changed on the website. If
+        yes, XML data source is updated.
+        """
         # Download only if the checksum have change since latest update.
         current_checksum = self._get_new_checksum()
         if current_checksum != self._latest_checksum_value:
-            # TODO: catch error and define what to do if no answer
             # TODO: do we return status?
             # Save the new checksum
             self._latest_checksum_value = current_checksum
@@ -111,7 +136,10 @@ class VigilanceMeteoFranceProxy(object):
             )
 
     def get_alert_list(self, department):
-        """Return the list and status of the alerts for a given department."""
+        """Return the list and status of the alerts for a given department.
+        
+        For all alert types, a status (Vert, Jaune, Orange, Rouge) is returned.
+        """
 
         # update data
         self.update_data()
