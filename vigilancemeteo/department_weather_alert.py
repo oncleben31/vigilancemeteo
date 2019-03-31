@@ -1,7 +1,8 @@
 # coding: utf-8
 """Implement a class for Météofrance weather alerts """
 from vigilancemeteo import VigilanceMeteoFranceProxy
-from vigilancemeteo.constants import VALID_DEPARTMENT_LIST, EQUIVALENCE_75
+from vigilancemeteo.constants import EQUIVALENCE_75, VALID_DEPARTMENT_LIST
+
 
 class DepartmentWeatherAlert(object):
     """A Class to descripe French departments weather alerts.
@@ -39,9 +40,6 @@ class DepartmentWeatherAlert(object):
     >>>zone.message_de_synthese
     'Aucune alerte en cours.'
     """
-    # TODO: Opportunity to add advises and comments from the weather buletin.
-    # TODO: Monitor change from one bulletin to another.
-    # TODO: Add markdown format.
 
     def __init__(self, department, vmf_proxy=None):
         """Class instance constructor.
@@ -79,13 +77,15 @@ class DepartmentWeatherAlert(object):
         # ordered
         alerts_list_ordonnee = ""
         for key in sorted(self.alerts_list.keys()):
-            alerts_list_ordonnee = alerts_list_ordonnee +\
-                                  "'{}': '{}', ".\
-                                  format(key, self.alerts_list[key])
-        return "DepartmentWeatherAlert: \n - departement: '{}'\n - bulletin_date: '{}'"\
-               "\n - alerts_list: {{{}}}".format(self._department,
-                                                   self.bulletin_date,
-                                                   alerts_list_ordonnee[:-2])
+            alerts_list_ordonnee = alerts_list_ordonnee + "'{}': '{}', ".format(
+                key, self.alerts_list[key]
+            )
+        return (
+            "DepartmentWeatherAlert: \n - departement: '{}'\n - bulletin_date: '{}'"
+            "\n - alerts_list: {{{}}}".format(
+                self._department, self.bulletin_date, alerts_list_ordonnee[:-2]
+            )
+        )
 
     @property
     def department_color(self):
@@ -93,14 +93,14 @@ class DepartmentWeatherAlert(object):
 
         It's the color of the most critical alert.
         """
-        if any(alert == 'Rouge' for alert in self.alerts_list.values()):
-            synthesis = 'Rouge'
-        elif any(alert == 'Orange' for alert in self.alerts_list.values()):
-            synthesis = 'Orange'
-        elif any(alert == 'Jaune' for alert in self.alerts_list.values()):
-            synthesis = 'Jaune'
-        elif all(alert == 'Vert' for alert in self.alerts_list.values()):
-            synthesis = 'Vert'
+        if any(alert == "Rouge" for alert in self.alerts_list.values()):
+            synthesis = "Rouge"
+        elif any(alert == "Orange" for alert in self.alerts_list.values()):
+            synthesis = "Orange"
+        elif any(alert == "Jaune" for alert in self.alerts_list.values()):
+            synthesis = "Jaune"
+        elif all(alert == "Vert" for alert in self.alerts_list.values()):
+            synthesis = "Vert"
         else:
             # return None if we had issue to get the data
             synthesis = None
@@ -113,42 +113,45 @@ class DepartmentWeatherAlert(object):
         Return the vigilance.meteofrance.com URL to get additinonal details
         about active alerts in the department.
         """
-        return "http://vigilance.meteofrance.com/"\
-               "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._department)
+        return (
+            "http://vigilance.meteofrance.com/"
+            "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._department)
+        )
 
-    def summary_message(self, msg_format='text'):
+    def summary_message(self, msg_format="text"):
         """Get synthesis text message to have the list of the active alerts."""
-        if self.department_color == 'Vert':
-            if msg_format == 'text':
+        if self.department_color == "Vert":
+            if msg_format == "text":
                 message = "Aucune alerte météo en cours."
-            elif msg_format == 'html':
+            elif msg_format == "html":
                 message = "<p>Aucune alerte météo en cours.</p>"
         elif self.department_color is None:
-            if msg_format == 'text':
+            if msg_format == "text":
                 message = "Impossible de récupérer l'information"
-            if msg_format == 'html':
+            if msg_format == "html":
                 message = "<p>Impossible de récupérer l'infmation</p>"
         else:
-            if msg_format == 'text':
-                message = \
-                    "Alerte météo {} en cours :".format(self.department_color)
+            if msg_format == "text":
+                message = "Alerte météo {} en cours :".format(self.department_color)
                 # Order the dictionary keys ecause before python 3.6 keys are
                 # not ordered
                 for type_risque in sorted(self.alerts_list.keys()):
-                    if self.alerts_list[type_risque] != 'Vert':
-                        message = message + "\n - {}: {}"\
-                            .format(type_risque, self.alerts_list[type_risque])
-            elif msg_format == 'html':
-                message = \
-                    "<p>Alerte météo {} en cours :"\
-                    "</p><ul>".format(self.department_color)
+                    if self.alerts_list[type_risque] != "Vert":
+                        message = message + "\n - {}: {}".format(
+                            type_risque, self.alerts_list[type_risque]
+                        )
+            elif msg_format == "html":
+                message = "<p>Alerte météo {} en cours :" "</p><ul>".format(
+                    self.department_color
+                )
                 # Order the dictionary keys ecause before python 3.6 keys are
                 # not ordered
                 for type_risque in sorted(self.alerts_list.keys()):
-                    if self.alerts_list[type_risque] != 'Vert':
-                        message = message + "<li>{}: {}</li>"\
-                            .format(type_risque, self.alerts_list[type_risque])
-                message = message + '</ul>'
+                    if self.alerts_list[type_risque] != "Vert":
+                        message = message + "<li>{}: {}</li>".format(
+                            type_risque, self.alerts_list[type_risque]
+                        )
+                message = message + "</ul>"
         return message
 
     @property
@@ -177,16 +180,18 @@ class DepartmentWeatherAlert(object):
         """
         # Check the valide values for department
         if department not in VALID_DEPARTMENT_LIST:
-            raise ValueError("Departement parameter have to be a 2 characters string"
-                             "between '01' and '95' or '2A' or '2B' or '99'."
-                             "Used value: {}".format(department))
+            raise ValueError(
+                "Departement parameter have to be a 2 characters string"
+                "between '01' and '95' or '2A' or '2B' or '99'."
+                "Used value: {}".format(department)
+            )
 
         # Equivalences list
         validated_department = department
 
         # Replace, the missing department in the XLM by the equivalence.
         if department in EQUIVALENCE_75:
-            validated_department = '75'
+            validated_department = "75"
 
         # Set the variable
         self._department = validated_department
