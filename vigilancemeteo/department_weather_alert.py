@@ -1,9 +1,7 @@
 # coding: utf-8
-"""Implement a class for Météofrance weather alerts """
+"""Implement a class for Météofrance weather alerts for a department"""
 from vigilancemeteo import VigilanceMeteoFranceProxy
 from vigilancemeteo.constants import EQUIVALENCE_75, VALID_DEPARTMENT_LIST
-
-# TODO: review all docstring
 
 
 class DepartmentWeatherAlert(object):
@@ -11,36 +9,21 @@ class DepartmentWeatherAlert(object):
 
     Data are fetch on vigilance.meteofrance.com website.
 
-    Private attributes from ZoneAlerte class:
-    - _department: The department watched
-    - _alerts_list: A dictionary with all the alerts. Keys for alert type and
-      value for criticity (by color).
-
-    Methods from ZoneAlerte class:
-    - mise_a_jour_etat(): update alerts list by feching latest info from
-      MétéoFrance forcast.
-    - message_de_synthese(format): return a string with textual synthesis
-      of the active alerts in department. According to value of 'format'
-      parameter, the string return change: 'text' (default) or 'html'
-
-    Public attributes  from ZoneAlerte class
+    Public attributes  from DepartmentWeatherAlert class
     - department_color: return the overall criticity color for the department
-    - url_pour_en_savoir_plus: return the URL to access more information about
+    - additional_info_URL: return the URL to access more information about
       department weather alerts from the MétéoFrance website.
     - bulletin_date: return latest bulletin update date & time with timezone
-    - departement: Get or set the departement number corresponding to the area
+    - department: Get or set the department number corresponding to the area
       watched.
     - alerts_list: return the list of active alerts
 
-    Example:
-    >>>import vigilancemeteo
-    >>>zone = vigilancemeteo.ZoneAlerte('92')
-    >>>zone.department_color
-    'Vert'
-    >>>zone.urlPourEnSavoirPlus
-    'http://vigilance.meteofrance.com/Bulletin_sans.html?a=dept75&b=1&c='
-    >>>zone.message_de_synthese
-    'Aucune alerte en cours.'
+    Methods from DepartmentWeatherAlert class:
+    - update_department_status(): update alerts list by feching latest info from
+      MétéoFrance forcast.
+    - summary_message(format): return a string with textual synthesis of the
+      active alerts in department. According to value of 'format' parameter,
+      the string return change: 'text' (default) or 'html'
     """
 
     def __init__(self, department, vmf_proxy=None):
@@ -56,13 +39,14 @@ class DepartmentWeatherAlert(object):
         # Variables init
         self._alerts_list = {}
         self._department = None
+        # If no VigilanceMeteoFranceProxy set in the parameter create a new one.
         if vmf_proxy is not None:
             self._viglance_MF_proxy = vmf_proxy
         else:
             self._viglance_MF_proxy = VigilanceMeteoFranceProxy()
 
         # Check _department variable using the property.
-        # Warning the setter launch mise_a_jour_etat() methods.
+        # Warning the setter launch update_department_status() methods.
         self.department = department
 
     def update_department_status(self):
@@ -75,7 +59,7 @@ class DepartmentWeatherAlert(object):
 
     def __repr__(self):
         """"instance representation"""
-        # Order the dictionary keys ecause before python 3.6 keys are not
+        # Order the dictionary keys because before python 3.6 keys are not
         # ordered
         alerts_list_ordonnee = ""
         for key in sorted(self.alerts_list.keys()):
@@ -83,7 +67,7 @@ class DepartmentWeatherAlert(object):
                 key, self.alerts_list[key]
             )
         return (
-            "DepartmentWeatherAlert: \n - departement: '{}'\n - bulletin_date: '{}'"
+            "DepartmentWeatherAlert: \n - department: '{}'\n - bulletin_date: '{}'"
             "\n - alerts_list: {{{}}}".format(
                 self._department, self.bulletin_date, alerts_list_ordonnee[:-2]
             )
@@ -121,7 +105,10 @@ class DepartmentWeatherAlert(object):
         )
 
     def summary_message(self, msg_format="text"):
-        """Get synthesis text message to have the list of the active alerts."""
+        """Get synthesis text message to have the list of the active alerts.
+        
+        msg_format parameter can be 'text' or 'html'.
+        """
         if self.department_color == "Vert":
             if msg_format == "text":
                 message = "Aucune alerte météo en cours."
@@ -135,7 +122,7 @@ class DepartmentWeatherAlert(object):
         else:
             if msg_format == "text":
                 message = "Alerte météo {} en cours :".format(self.department_color)
-                # Order the dictionary keys ecause before python 3.6 keys are
+                # Order the dictionary keys because before python 3.6 keys are
                 # not ordered
                 for type_risque in sorted(self.alerts_list.keys()):
                     if self.alerts_list[type_risque] != "Vert":
@@ -158,7 +145,7 @@ class DepartmentWeatherAlert(object):
 
     @property
     def bulletin_date(self):
-        """Accessor and setter for Update date"""
+        """Accessor and setter for bulletin update date"""
         return self._viglance_MF_proxy.bulletin_date
 
     @property
@@ -178,12 +165,12 @@ class DepartmentWeatherAlert(object):
         Departemnt variable should be a 2 chararcters string. In the source XML
         file, the 92, 93 and 95 departments do not exist. In this case we have
         to use the 75 department instead.
-        This setter will call the mise_a_jour_etat() method systematicaly.
+        This setter will call the update_department_status() method systematicaly.
         """
         # Check the valide values for department
         if department not in VALID_DEPARTMENT_LIST:
             raise ValueError(
-                "Departement parameter have to be a 2 characters string"
+                "Department parameter have to be a 2 characters string"
                 "between '01' and '95' or '2A' or '2B' or '99'."
                 "Used value: {}".format(department)
             )

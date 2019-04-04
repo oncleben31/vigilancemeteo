@@ -16,7 +16,6 @@ if sys.version_info < (3, 0):
 else:
     from urllib.request import urlopen
 
-# TODO: translate in english
 # TODO: add pylint and doc check in tox ?
 
 
@@ -60,17 +59,12 @@ def test_functional():
     test_url = urlopen(zone.additional_info_URL).getcode() == 200
 
     # Test to check if there is a overall criticity color for the department
-    test_couleur = zone.department_color in ALERT_COLOR_LIST
+    test_color = zone.department_color in ALERT_COLOR_LIST
 
     # Test the synthesis message
-    test_synthese = zone.summary_message is not None
+    test_summary = zone.summary_message is not None
 
-    assert (test_date, test_url, test_couleur, test_synthese) == (
-        True,
-        True,
-        True,
-        True,
-    )
+    assert (test_date, test_url, test_color, test_summary) == (True, True, True, True)
 
 
 # def test_url_innaccessible(fix_data_unavailable):
@@ -104,9 +98,9 @@ def test_petite_couronne(fix_local_data, dep):
 
 
 @pytest.mark.parametrize("dep", [75, "2", "bonjour", 1.5, "98", True, None])
-def test_departement_non_valide(fix_local_data, dep):
+def test_department_parameter_not_valid(fix_local_data, dep):
     """Test when creating Class instace with with wrong parameters."""
-    with pytest.raises(ValueError, match=r"Departement .*"):
+    with pytest.raises(ValueError, match=r"Department .*"):
         DepartmentWeatherAlert(dep)
 
 
@@ -120,11 +114,11 @@ def test_department_color(fix_local_data, department, color):
     assert zone.department_color == color
 
 
-def test_risque_cotier(fix_local_data):
+def test_coastal_risks(fix_local_data):
     """Test specific risks for coastal departments."""
     zone = DepartmentWeatherAlert("2A")
-    resultat_attendu = (
-        "DepartmentWeatherAlert: \n - departement: '2A'"
+    excpected_result = (
+        "DepartmentWeatherAlert: \n - department: '2A'"
         "\n - bulletin_date: '2018-03-18 16:00:00+01:00'"
         "\n - alerts_list: "
         "{'Avalanches': 'Jaune', 'Canicule': 'Vert', 'Grand-froid': 'Vert'"
@@ -132,7 +126,7 @@ def test_risque_cotier(fix_local_data):
         ", 'Pluie-innodation': 'Jaune', 'Vagues-submersion': 'Jaune'"
         ", 'Vent violent': 'Vert'}"
     )
-    assert zone.__repr__() == resultat_attendu
+    assert zone.__repr__() == excpected_result
 
 
 @pytest.mark.parametrize("msg_format", ["text", "html"])
@@ -140,10 +134,10 @@ def test_summary_message_vert(fix_local_data, msg_format):
     """Test syntesis message when no active alert."""
     zone = DepartmentWeatherAlert("34")
     if msg_format == "text":
-        resultat_attendu = "Aucune alerte météo en cours."
+        excpected_result = "Aucune alerte météo en cours."
     elif msg_format == "html":
-        resultat_attendu = "<p>Aucune alerte météo en cours.</p>"
-    assert zone.summary_message(msg_format) == resultat_attendu
+        excpected_result = "<p>Aucune alerte météo en cours.</p>"
+    assert zone.summary_message(msg_format) == excpected_result
 
 
 @pytest.mark.parametrize("msg_format", ["text", "html"])
@@ -151,7 +145,7 @@ def test_summary_message_alerte(fix_local_data, msg_format):
     """Test synthesis message when at least one active alert"""
     zone = DepartmentWeatherAlert("2A")
     if msg_format == "text":
-        resultat_attendu = (
+        excpected_result = (
             "Alerte météo Jaune en cours :"
             "\n - Avalanches: Jaune"
             "\n - Orages: Jaune"
@@ -159,11 +153,11 @@ def test_summary_message_alerte(fix_local_data, msg_format):
             "\n - Vagues-submersion: Jaune"
         )
     elif msg_format == "html":
-        resultat_attendu = (
+        excpected_result = (
             "<p>Alerte météo Jaune en cours :</p><ul>"
             "<li>Avalanches: Jaune</li>"
             "<li>Orages: Jaune</li>"
             "<li>Pluie-innodation: Jaune</li>"
             "<li>Vagues-submersion: Jaune</li></ul>"
         )
-    assert zone.summary_message(msg_format) == resultat_attendu
+    assert zone.summary_message(msg_format) == excpected_result
