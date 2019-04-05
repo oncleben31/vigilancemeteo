@@ -67,6 +67,7 @@ def test_functional():
     assert (test_date, test_url, test_color, test_summary) == (True, True, True, True)
 
 
+# TODO: Add test when URL not accessible
 # def test_url_innaccessible(fix_data_unavailable):
 #     """URL unavailable test"""
 #     zone = DepartmentWeatherAlert('32')

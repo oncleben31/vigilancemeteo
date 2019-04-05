@@ -2,7 +2,6 @@
 """Vigilancemeteo provide an API to fetch France weather alerts from Météo
 France website.
 
-
 ZoneAlerte class allows to fetch active weather alerts for a french department.
 """
 

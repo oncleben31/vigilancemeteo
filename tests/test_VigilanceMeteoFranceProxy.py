@@ -6,6 +6,14 @@ import sys
 import pytest
 
 from vigilancemeteo import VigilanceMeteoError, VigilanceMeteoFranceProxy
+from vigilancemeteo.constants import (
+    UPDATE_STATUS_CHECKSUM_CACHED_60S,
+    UPDATE_STATUS_CHECKSUM_UPDATED,
+    UPDATE_STATUS_ERROR_AND_BULLETIN_EXPIRED,
+    UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID,
+    UPDATE_STATUS_SAME_CHECKSUM,
+    UPDATE_STATUS_XML_UPDATED,
+)
 
 
 @pytest.yield_fixture()
@@ -32,18 +40,26 @@ def test_basic():
 
     # first update
     client.update_data()
+    test_status_1 = client.status == UPDATE_STATUS_XML_UPDATED
 
     # second update should do nothing as less than 60 secondes after first update
     client.update_data()
+    test_status_2 = client.status == UPDATE_STATUS_CHECKSUM_CACHED_60S
 
     # simulation 2 minutes wait
     client._latest_check_date = client._latest_check_date - datetime.timedelta(
         seconds=120
     )
     client.update_data()
-    # TODO add test to know if file have been download or not
+    test_status_3 = client.status == UPDATE_STATUS_SAME_CHECKSUM
+    test_xml_tree = client.xml_tree is not None
 
-    assert client.xml_tree is not None
+    assert (test_status_1, test_status_2, test_status_3, test_xml_tree) == (
+        True,
+        True,
+        True,
+        True,
+    )
 
 
 def test_bulletin_date(fix_local_data):
@@ -78,7 +94,10 @@ def test_checksum_unreachable_and_bulletin_valid():
     client.update_data()
 
     # Should be no error and the value of the first update checksum
-    assert client.checksum == first_checksum
+    assert (client.checksum, client.status) == (
+        first_checksum,
+        UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID,
+    )
 
 
 def test_checksum_unreachable_and_bulletin_expired(fix_local_data):

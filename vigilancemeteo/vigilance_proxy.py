@@ -11,6 +11,12 @@ from vigilancemeteo.constants import (
     ALERT_COLOR_LIST,
     ALERT_TYPE_LIST,
     COASTAL_DEPARTMENT_LIST,
+    UPDATE_STATUS_CHECKSUM_CACHED_60S,
+    UPDATE_STATUS_CHECKSUM_UPDATED,
+    UPDATE_STATUS_ERROR_AND_BULLETIN_EXPIRED,
+    UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID,
+    UPDATE_STATUS_SAME_CHECKSUM,
+    UPDATE_STATUS_XML_UPDATED,
     VALID_DEPARTMENT_LIST,
 )
 
@@ -34,6 +40,7 @@ class VigilanceMeteoFranceProxy(object):
     - xml_tree = XML representation of the weather alert bulletin
     - bulletin_date = Date of the bulletin (with timezone)
     - checksum = Checksum of the weather alert bulletin
+    - status = current status of the proxy (possible value in constant.py)
 
     Public Methods:
     - update_date(): Check if new information are available and download them if any.
@@ -64,6 +71,7 @@ class VigilanceMeteoFranceProxy(object):
         self._latest_check_date = None
         self._latest_checksum_value = None
         self._bulletin_date = None
+        self._proxy_status = None
 
     def _get_new_checksum(self):
         """Return the checksum of the data source on MétéoFrance website.
@@ -85,6 +93,7 @@ class VigilanceMeteoFranceProxy(object):
                 text = urlopen(self.URL_VIGILANCE_METEO_CHECKSUM).read().decode("utf-8")
                 checksum = re.search(r"\n(.+?)\s", text)
                 if checksum:
+                    self._proxy_status = UPDATE_STATUS_CHECKSUM_UPDATED
                     return checksum.group(1)
             except URLError:
                 # Didn't succeed to download the cheksum file
@@ -92,14 +101,17 @@ class VigilanceMeteoFranceProxy(object):
                     timezone("UTC").localize(datetime.utcnow()) - self.bulletin_date
                 ).days < 1:
                     # If the bulletin is old of less than 24 hours. It's OK to keep it.
+                    self._proxy_status = UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID
                     return self._latest_checksum_value
                 else:
+                    self._proxy_status = UPDATE_STATUS_ERROR_AND_BULLETIN_EXPIRED
                     raise VigilanceMeteoError(
                         "Error: 'vigilance_controle.txt' unreachable and weather alert bulletin has expired"
                     )
 
         else:
             # No need to check so return previous value
+            self._proxy_status = UPDATE_STATUS_CHECKSUM_CACHED_60S
             return self._latest_checksum_value
 
     def update_data(self):
@@ -111,11 +123,11 @@ class VigilanceMeteoFranceProxy(object):
         # Download only if the checksum have change since latest update.
         current_checksum = self._get_new_checksum()
         if current_checksum != self._latest_checksum_value:
-            # TODO: do we return status?
             # Save the new checksum
             self._latest_checksum_value = current_checksum
 
             # Save the new xml source
+            # TODO: Add error management
             self._xml_tree = etree.parse(
                 self.URL_VIGILANCE_METEO_XML
             )  # pylint disable=c-extension-no-member
@@ -134,6 +146,9 @@ class VigilanceMeteoFranceProxy(object):
             self._bulletin_date = paris_timezone.localize(
                 datetime(annee, mois, jour, heure, minute, seconde)
             )
+            self._proxy_status = UPDATE_STATUS_XML_UPDATED
+        elif self._proxy_status == UPDATE_STATUS_CHECKSUM_UPDATED:
+            self._proxy_status = UPDATE_STATUS_SAME_CHECKSUM
 
     def get_alert_list(self, department):
         """Return the list and status of the alerts for a given department.
@@ -190,3 +205,8 @@ class VigilanceMeteoFranceProxy(object):
     def bulletin_date(self):
         """Getter for _bulletin_date"""
         return self._bulletin_date
+
+    @property
+    def status(self):
+        """ Getter for _proxy_status"""
+        return self._proxy_status
