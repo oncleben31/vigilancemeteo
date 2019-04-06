@@ -85,21 +85,19 @@ class VigilanceMeteoFranceProxy(object):
         if (self._latest_check_date is None) or (
             datetime.now() - self._latest_check_date
         ).total_seconds() > 60:
-            # Update latest check date.
-            self._latest_check_date = datetime.now()
 
             # get checksum in vigilance_controle.txt
             try:
                 text = urlopen(self.URL_VIGILANCE_METEO_CHECKSUM).read().decode("utf-8")
-                checksum = re.search(r"\n(.+?)\s", text)
-                if checksum:
-                    self._proxy_status = UPDATE_STATUS_CHECKSUM_UPDATED
-                    return checksum.group(1)
             except URLError:
                 # Didn't succeed to download the cheksum file
                 if (
-                    timezone("UTC").localize(datetime.utcnow()) - self.bulletin_date
-                ).days < 1:
+                    self.bulletin_date is not None
+                    and (
+                        timezone("UTC").localize(datetime.utcnow()) - self.bulletin_date
+                    ).days
+                    < 1
+                ):
                     # If the bulletin is old of less than 24 hours. It's OK to keep it.
                     self._proxy_status = UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID
                     return self._latest_checksum_value
@@ -108,6 +106,15 @@ class VigilanceMeteoFranceProxy(object):
                     raise VigilanceMeteoError(
                         "Error: 'vigilance_controle.txt' unreachable and weather alert bulletin has expired"
                     )
+            else:
+                # Update latest check date.
+                self._latest_check_date = datetime.now()
+
+                # Return checksum
+                checksum = re.search(r"\n(.+?)\s", text)
+                if checksum:
+                    self._proxy_status = UPDATE_STATUS_CHECKSUM_UPDATED
+                    return checksum.group(1)
 
         else:
             # No need to check so return previous value
@@ -127,26 +134,46 @@ class VigilanceMeteoFranceProxy(object):
             self._latest_checksum_value = current_checksum
 
             # Save the new xml source
-            # TODO: Add error management
-            self._xml_tree = etree.parse(
-                self.URL_VIGILANCE_METEO_XML
-            )  # pylint disable=c-extension-no-member
+            try:
+                self._xml_tree = etree.parse(
+                    self.URL_VIGILANCE_METEO_XML
+                )  # pylint disable=c-extension-no-member
+            except (OSError, IOError):
+                # Didn't succeed to download the xml file
+                if (
+                    self.bulletin_date is not None
+                    and (
+                        timezone("UTC").localize(datetime.utcnow()) - self.bulletin_date
+                    ).days
+                    < 1
+                ):
+                    # If the bulletin is old of less than 24 hours, it's OK to keep it.
+                    self._proxy_status = UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID
+                else:
+                    # If the bulletin is older than 24 hours, it raises an Error
+                    self._proxy_status = UPDATE_STATUS_ERROR_AND_BULLETIN_EXPIRED
+                    # Delete lasest check date to be sure every other future call
+                    # won't use the cached data
+                    self._latest_check_date = None
+                    raise VigilanceMeteoError(
+                        "Error: 'NXFR33_LFPX_.xml' unreachable and weather alert bulletin has expired"
+                    )
+            else:
+                # Get the weather bulletin date & time
+                string_date = self._xml_tree.xpath("/CV/EV")[0].get("dateinsert")
 
-            # Get the weather bulletin date & time
-            string_date = self._xml_tree.xpath("/CV/EV")[0].get("dateinsert")
-
-            # Convert the string in date and time with Europe/Paris timezone
-            annee = int(string_date[0:4])
-            mois = int(string_date[4:6])
-            jour = int(string_date[6:8])
-            heure = int(string_date[8:10])
-            minute = int(string_date[10:12])
-            seconde = int(string_date[12:14])
-            paris_timezone = timezone("Europe/Paris")
-            self._bulletin_date = paris_timezone.localize(
-                datetime(annee, mois, jour, heure, minute, seconde)
-            )
-            self._proxy_status = UPDATE_STATUS_XML_UPDATED
+                # Convert the string in date and time with Europe/Paris timezone
+                annee = int(string_date[0:4])
+                mois = int(string_date[4:6])
+                jour = int(string_date[6:8])
+                heure = int(string_date[8:10])
+                minute = int(string_date[10:12])
+                seconde = int(string_date[12:14])
+                paris_timezone = timezone("Europe/Paris")
+                self._bulletin_date = paris_timezone.localize(
+                    datetime(annee, mois, jour, heure, minute, seconde)
+                )
+                self._proxy_status = UPDATE_STATUS_XML_UPDATED
         elif self._proxy_status == UPDATE_STATUS_CHECKSUM_UPDATED:
             self._proxy_status = UPDATE_STATUS_SAME_CHECKSUM
 

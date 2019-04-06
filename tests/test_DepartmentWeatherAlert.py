@@ -16,7 +16,8 @@ if sys.version_info < (3, 0):
 else:
     from urllib.request import urlopen
 
-# TODO: add pylint and doc check in tox ?
+# TODO: add pylint, coverage and doc check in tox ?
+# TODO; add test when proxy raises error
 
 
 @pytest.yield_fixture()
@@ -65,24 +66,6 @@ def test_functional():
     test_summary = zone.summary_message is not None
 
     assert (test_date, test_url, test_color, test_summary) == (True, True, True, True)
-
-
-# TODO: Add test when URL not accessible
-# def test_url_innaccessible(fix_data_unavailable):
-#     """URL unavailable test"""
-#     zone = DepartmentWeatherAlert('32')
-
-#     # Test to check if there is a overall criticity color for the department
-#     test_couleur = zone.synthese_couleur is None
-
-#     # Test the synthesis message
-#     test_synthese_text = zone.summary_message('text')\
-#                          == "Impossible de récupérer l'information"
-#     test_synthese_html = zone.summary_message('html')\
-#                          == "<p>Impossible de récupérer l'infmation</p>"
-
-#     assert (test_couleur,
-#             test_synthese_text, test_synthese_html) == (True, True, True)
 
 
 @pytest.mark.parametrize("dep", ["92", "93", "94"])

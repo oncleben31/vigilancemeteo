@@ -55,6 +55,7 @@ class DepartmentWeatherAlert(object):
         get the alert color for the 9 different types on the Météo France
         website and update the variable 'alerts_list'.
         """
+        # TODO: Do we catch proxy errors ?
         self._alerts_list = self._viglance_MF_proxy.get_alert_list(self.department)
 
     def __repr__(self):
@@ -79,6 +80,7 @@ class DepartmentWeatherAlert(object):
 
         It's the color of the most critical alert.
         """
+        synthesis = None
         if any(alert == "Rouge" for alert in self.alerts_list.values()):
             synthesis = "Rouge"
         elif any(alert == "Orange" for alert in self.alerts_list.values()):
@@ -87,9 +89,7 @@ class DepartmentWeatherAlert(object):
             synthesis = "Jaune"
         elif all(alert == "Vert" for alert in self.alerts_list.values()):
             synthesis = "Vert"
-        else:
-            # return None if we had issue to get the data
-            synthesis = None
+
         return synthesis
 
     @property

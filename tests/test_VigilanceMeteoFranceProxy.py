@@ -79,7 +79,8 @@ def test_checksum(fix_local_data):
 
 
 def test_checksum_unreachable_and_bulletin_valid():
-    """Test checksum when URL unreachable"""
+    """Test behaviour when checksum URL unreachable"""
+    # First update OK
     client = VigilanceMeteoFranceProxy()
     client.update_data()
     first_checksum = client.checksum
@@ -100,16 +101,99 @@ def test_checksum_unreachable_and_bulletin_valid():
     )
 
 
+def test_xml_unreachable_and_bulletin_valid():
+    """Test behaviour when checksum URL unreachable"""
+    # First update OK
+    client = VigilanceMeteoFranceProxy()
+    client.update_data()
+    first_xml_tree = client.xml_tree
+
+    # fake the cheksum file to simulate new checksum file
+    client.URL_VIGILANCE_METEO_CHECKSUM = "file:./tests/vigilance_controle_2.txt"
+
+    # fake the xml file to simulate unreachable xml file
+    client.URL_VIGILANCE_METEO_XML = "./tests/fake_xml.xml"
+
+    # simulate 2 minutes wait
+    client._latest_check_date = client._latest_check_date - datetime.timedelta(
+        seconds=120
+    )
+    client.update_data()
+
+    # Should be no error and the value of the first update checksum
+    assert (client.xml_tree, client.status) == (
+        first_xml_tree,
+        UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID,
+    )
+
+
 def test_checksum_unreachable_and_bulletin_expired(fix_local_data):
-    """Test checksum behaviour in case of error"""
+    """Test checksum behaviour in case of error."""
+    # First update is OK
     client = VigilanceMeteoFranceProxy()
     client.update_data()
 
     # fake the cheksum file to simulate unreachable file
     client.URL_VIGILANCE_METEO_CHECKSUM = "file:./tests/fake_file.txt"
+
     # fake the date of bulletin. Make it exipred
-    client._latest_check_date = client._latest_check_date - datetime.timedelta(days=2)
+    client._bulletin_date = client._bulletin_date - datetime.timedelta(days=2)
+
+    # simulate 2 minutes wait
+    client._latest_check_date = client._latest_check_date - datetime.timedelta(
+        seconds=120
+    )
 
     # should raise an error
     with pytest.raises(VigilanceMeteoError):
         client.update_data()
+
+
+def test_xml_unreachable_and_bulletin_expired(fix_local_data):
+    """Test checksum behaviour in case of error."""
+    # First update is OK
+    client = VigilanceMeteoFranceProxy()
+    client.update_data()
+
+    # fake the cheksum file to simulate new checksum file
+    client.URL_VIGILANCE_METEO_CHECKSUM = "file:./tests/vigilance_controle_2.txt"
+
+    # fake the xml file to simulate unreachable xml file
+    client.URL_VIGILANCE_METEO_XML = "./tests/fake_xml.xml"
+
+    # fake the date of bulletin. Make it exipred
+    client._bulletin_date = client._bulletin_date - datetime.timedelta(days=2)
+
+    # simulate 2 minutes wait
+    client._latest_check_date = client._latest_check_date - datetime.timedelta(
+        seconds=120
+    )
+
+    # should raise an error
+    with pytest.raises(VigilanceMeteoError):
+        client.update_data()
+
+
+def test_first_try_checksum_unreachable(fix_local_data):
+    """Test behaviour when first checksum is unvailable."""
+    client = VigilanceMeteoFranceProxy()
+
+    # fake the cheksum file to simulate unreachable file
+    client.URL_VIGILANCE_METEO_CHECKSUM = "file:./tests/fake_file.txt"
+
+    # should raise an error
+    with pytest.raises(VigilanceMeteoError):
+        client.update_data()
+
+
+def test_first_try_xml_unreachable(fix_local_data):
+    """Test behaviour when first checksum is unvailable."""
+    client = VigilanceMeteoFranceProxy()
+
+    # fake the cheksum file to simulate unreachable file
+    client.URL_VIGILANCE_METEO_XML = "./tests/fake_xml.xml"
+
+    # should raise an error
+    with pytest.raises(VigilanceMeteoError):
+        client.update_data()
+
