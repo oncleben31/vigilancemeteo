@@ -17,6 +17,7 @@ else:
     from urllib.request import urlopen
 
 # TODO: add pylint, coverage and doc check in tox ?
+# TODO: secure relative path
 
 
 @pytest.yield_fixture()
@@ -25,20 +26,6 @@ def fix_local_data():
     # Using local answer instead of MeteoFrance website
     valeur_initiale = VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML
     VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML = "./tests/NXFR33_LFPW_.xml"
-    yield None
-
-    # Set back the initial value(using website instead of local answer)
-    VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML = valeur_initiale
-
-
-@pytest.yield_fixture()
-def fix_data_unavailable():
-    """Fixture to replace webiste answer by an inaxessible one."""
-    # Using local answer instead of MeteoFrance website
-    valeur_initiale = VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML
-    VigilanceMeteoFranceProxy.URL_VIGILANCE_METEO_XML = (
-        "http://vigilance.meteofrance.com" "/data/fake_test.xml"
-    )
     yield None
 
     # Set back the initial value(using website instead of local answer)
