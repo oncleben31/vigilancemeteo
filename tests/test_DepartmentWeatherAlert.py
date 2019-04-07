@@ -10,13 +10,14 @@ from pytz import timezone
 from vigilancemeteo import DepartmentWeatherAlert, VigilanceMeteoFranceProxy
 from vigilancemeteo.constants import ALERT_COLOR_LIST
 
+
 # Manage differences beetween python 2.7 and 3.6
 if sys.version_info < (3, 0):
     from urllib2 import urlopen  # pylint: disable=import-error
 else:
     from urllib.request import urlopen
 
-# TODO: add pylint, coverage and doc check in tox ?
+# TODO: add pylint and doc check in tox ?
 # TODO: secure relative path
 
 
@@ -105,7 +106,7 @@ def test_summary_message_vert(fix_local_data, msg_format):
     zone = DepartmentWeatherAlert("34")
     if msg_format == "text":
         excpected_result = "Aucune alerte météo en cours."
-    elif msg_format == "html":
+    else:  # msg_format == "html" to avoid partial in codecov
         excpected_result = "<p>Aucune alerte météo en cours.</p>"
     assert zone.summary_message(msg_format) == excpected_result
 
@@ -122,7 +123,7 @@ def test_summary_message_alerte(fix_local_data, msg_format):
             "\n - Pluie-innodation: Jaune"
             "\n - Vagues-submersion: Jaune"
         )
-    elif msg_format == "html":
+    else:  # msg_format == "html" to avoid partial in codecov
         excpected_result = (
             "<p>Alerte météo Jaune en cours :</p><ul>"
             "<li>Avalanches: Jaune</li>"
@@ -144,6 +145,13 @@ def test_results_when_proxy_raise_error(msg_format):
     zone = DepartmentWeatherAlert("2A", client)
     if msg_format == "text":
         excpected_result = "Impossible de récupérer l'information."
-    elif msg_format == "html":
+    else:  # msg_format == "html" to avoid partial in codecov
         excpected_result = "<p>Impossible de récupérer l'information.</p>"
     assert zone.summary_message(msg_format) == excpected_result
+
+
+def test_summary_message_error(fix_local_data):
+    """Test if we call summary_message method with a wrong parameter value."""
+    zone = DepartmentWeatherAlert("32")
+    with pytest.raises(ValueError, match=r"msg_format .*"):
+        zone.summary_message("wrong_format")

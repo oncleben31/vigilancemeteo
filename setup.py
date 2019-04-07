@@ -9,7 +9,7 @@ import os
 import sys
 from shutil import rmtree
 
-from setuptools import find_packages, setup, Command
+from setuptools import Command, find_packages, setup
 
 # Package meta-data.
 NAME = "vigilancemeteo"
@@ -18,7 +18,7 @@ DESCRIPTION = (
     "http://vigilance.meteofrance.com/"
 )
 URL = "https://github.com/oncleben31/vigilancemeteo"
-EMAIL = None
+EMAIL = "do_not@spam"
 AUTHOR = "Oncleben31"
 REQUIRES_PYTHON = ">=2.7.0"
 VERSION = None
@@ -92,7 +92,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author=AUTHOR,
-    # author_email=EMAIL,
+    author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=find_packages("src"),

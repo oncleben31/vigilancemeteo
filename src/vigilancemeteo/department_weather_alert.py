@@ -82,16 +82,18 @@ class DepartmentWeatherAlert(object):
 
         It's the color of the most critical alert.
         """
-        if self.alerts_list == {}:
-            synthesis = None
-        elif any(alert == "Rouge" for alert in self.alerts_list.values()):
+        if any(alert == "Rouge" for alert in self.alerts_list.values()):
             synthesis = "Rouge"
         elif any(alert == "Orange" for alert in self.alerts_list.values()):
             synthesis = "Orange"
         elif any(alert == "Jaune" for alert in self.alerts_list.values()):
             synthesis = "Jaune"
-        elif all(alert == "Vert" for alert in self.alerts_list.values()):
+        elif self.alerts_list and all(
+            alert == "Vert" for alert in self.alerts_list.values()
+        ):
             synthesis = "Vert"
+        else:
+            synthesis = None
 
         return synthesis
 
@@ -112,18 +114,12 @@ class DepartmentWeatherAlert(object):
         
         msg_format parameter can be 'text' or 'html'.
         """
-        if self.department_color == "Vert":
-            if msg_format == "text":
+        if msg_format == "text":
+            if self.department_color == "Vert":
                 message = "Aucune alerte météo en cours."
-            elif msg_format == "html":
-                message = "<p>Aucune alerte météo en cours.</p>"
-        elif self.department_color is None:
-            if msg_format == "text":
+            elif self.department_color is None:
                 message = "Impossible de récupérer l'information."
-            if msg_format == "html":
-                message = "<p>Impossible de récupérer l'information.</p>"
-        else:
-            if msg_format == "text":
+            else:
                 message = "Alerte météo {} en cours :".format(self.department_color)
                 # Order the dictionary keys because before python 3.6 keys are
                 # not ordered
@@ -132,7 +128,12 @@ class DepartmentWeatherAlert(object):
                         message = message + "\n - {}: {}".format(
                             type_risque, self.alerts_list[type_risque]
                         )
-            elif msg_format == "html":
+        elif msg_format == "html":
+            if self.department_color == "Vert":
+                message = "<p>Aucune alerte météo en cours.</p>"
+            elif self.department_color is None:
+                message = "<p>Impossible de récupérer l'information.</p>"
+            else:
                 message = "<p>Alerte météo {} en cours :" "</p><ul>".format(
                     self.department_color
                 )
@@ -144,6 +145,12 @@ class DepartmentWeatherAlert(object):
                             type_risque, self.alerts_list[type_risque]
                         )
                 message = message + "</ul>"
+        else:
+            raise ValueError(
+                "msg_format of summary_message() only method accept 'text' or 'html' values. "
+                "Used value: {}".format(msg_format)
+            )
+
         return message
 
     @property

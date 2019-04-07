@@ -112,9 +112,8 @@ class VigilanceMeteoFranceProxy(object):
 
                 # Return checksum
                 checksum = re.search(r"\n(.+?)\s", text)
-                if checksum:
-                    self._proxy_status = UPDATE_STATUS_CHECKSUM_UPDATED
-                    return checksum.group(1)
+                self._proxy_status = UPDATE_STATUS_CHECKSUM_UPDATED
+                return checksum.group(1)
 
         else:
             # No need to check so return previous value

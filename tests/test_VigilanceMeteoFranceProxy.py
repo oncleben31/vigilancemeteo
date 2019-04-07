@@ -6,14 +6,12 @@ import sys
 import pytest
 
 from vigilancemeteo import VigilanceMeteoError, VigilanceMeteoFranceProxy
-from vigilancemeteo.constants import (
-    UPDATE_STATUS_CHECKSUM_CACHED_60S,
-    UPDATE_STATUS_CHECKSUM_UPDATED,
-    UPDATE_STATUS_ERROR_AND_BULLETIN_EXPIRED,
-    UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID,
-    UPDATE_STATUS_SAME_CHECKSUM,
-    UPDATE_STATUS_XML_UPDATED,
-)
+from vigilancemeteo.constants import (UPDATE_STATUS_CHECKSUM_CACHED_60S,
+                                      UPDATE_STATUS_CHECKSUM_UPDATED,
+                                      UPDATE_STATUS_ERROR_AND_BULLETIN_EXPIRED,
+                                      UPDATE_STATUS_ERROR_BUT_PREVIOUS_BULLETIN_VALID,
+                                      UPDATE_STATUS_SAME_CHECKSUM,
+                                      UPDATE_STATUS_XML_UPDATED)
 
 
 @pytest.yield_fixture()
@@ -196,4 +194,3 @@ def test_first_try_xml_unreachable(fix_local_data):
     # should raise an error
     with pytest.raises(VigilanceMeteoError):
         client.update_data()
-
