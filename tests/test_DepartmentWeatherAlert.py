@@ -17,7 +17,6 @@ else:
     from urllib.request import urlopen
 
 # TODO: add pylint, coverage and doc check in tox ?
-# TODO; add test when proxy raises error
 
 
 @pytest.yield_fixture()
@@ -144,4 +143,20 @@ def test_summary_message_alerte(fix_local_data, msg_format):
             "<li>Pluie-innodation: Jaune</li>"
             "<li>Vagues-submersion: Jaune</li></ul>"
         )
+    assert zone.summary_message(msg_format) == excpected_result
+
+
+@pytest.mark.parametrize("msg_format", ["text", "html"])
+def test_results_when_proxy_raise_error(msg_format):
+    """Test behaviour when Error are raised by proxy."""
+    client = VigilanceMeteoFranceProxy()
+
+    # fake the cheksum file to simulate unreachable file
+    client.URL_VIGILANCE_METEO_CHECKSUM = "file:./tests/fake_file.txt"
+
+    zone = DepartmentWeatherAlert("2A", client)
+    if msg_format == "text":
+        excpected_result = "Impossible de récupérer l'information."
+    elif msg_format == "html":
+        excpected_result = "<p>Impossible de récupérer l'information.</p>"
     assert zone.summary_message(msg_format) == excpected_result

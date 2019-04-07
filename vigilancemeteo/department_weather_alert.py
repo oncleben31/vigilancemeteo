@@ -1,6 +1,6 @@
 # coding: utf-8
 """Implement a class for Météofrance weather alerts for a department"""
-from vigilancemeteo import VigilanceMeteoFranceProxy
+from vigilancemeteo import VigilanceMeteoError, VigilanceMeteoFranceProxy
 from vigilancemeteo.constants import EQUIVALENCE_75, VALID_DEPARTMENT_LIST
 
 
@@ -55,8 +55,10 @@ class DepartmentWeatherAlert(object):
         get the alert color for the 9 different types on the Météo France
         website and update the variable 'alerts_list'.
         """
-        # TODO: Do we catch proxy errors ?
-        self._alerts_list = self._viglance_MF_proxy.get_alert_list(self.department)
+        try:
+            self._alerts_list = self._viglance_MF_proxy.get_alert_list(self.department)
+        except VigilanceMeteoError:
+            self._alerts_list = {}
 
     def __repr__(self):
         """"instance representation"""
@@ -80,8 +82,9 @@ class DepartmentWeatherAlert(object):
 
         It's the color of the most critical alert.
         """
-        synthesis = None
-        if any(alert == "Rouge" for alert in self.alerts_list.values()):
+        if self.alerts_list == {}:
+            synthesis = None
+        elif any(alert == "Rouge" for alert in self.alerts_list.values()):
             synthesis = "Rouge"
         elif any(alert == "Orange" for alert in self.alerts_list.values()):
             synthesis = "Orange"
@@ -116,9 +119,9 @@ class DepartmentWeatherAlert(object):
                 message = "<p>Aucune alerte météo en cours.</p>"
         elif self.department_color is None:
             if msg_format == "text":
-                message = "Impossible de récupérer l'information"
+                message = "Impossible de récupérer l'information."
             if msg_format == "html":
-                message = "<p>Impossible de récupérer l'infmation</p>"
+                message = "<p>Impossible de récupérer l'information.</p>"
         else:
             if msg_format == "text":
                 message = "Alerte météo {} en cours :".format(self.department_color)
