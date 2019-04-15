@@ -52,7 +52,16 @@ def test_functional():
     # Test the synthesis message
     test_summary = zone.summary_message is not None
 
-    assert (test_date, test_url, test_color, test_summary) == (True, True, True, True)
+    # Test the client used is the one given in argument at creation
+    test_client = client == zone.proxy
+
+    assert (test_date, test_url, test_color, test_summary, test_client) == (
+        True,
+        True,
+        True,
+        True,
+        True,
+    )
 
 
 @pytest.mark.parametrize("dep", ["92", "93", "94"])

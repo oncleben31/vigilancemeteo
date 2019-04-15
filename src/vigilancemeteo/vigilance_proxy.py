@@ -130,6 +130,8 @@ class VigilanceMeteoFranceProxy(object):
         current_checksum = self._get_new_checksum()
         if current_checksum != self._latest_checksum_value:
             # Save the new checksum
+            # TODO: how to secure concurrent update request between checksum updated and XML downloaded
+            # Perhaps with a status to say data is ready.
             self._latest_checksum_value = current_checksum
 
             # Save the new xml source

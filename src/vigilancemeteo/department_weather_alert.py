@@ -16,7 +16,9 @@ class DepartmentWeatherAlert(object):
     - bulletin_date: return latest bulletin update date & time with timezone
     - department: Get or set the department number corresponding to the area
       watched.
-    - alerts_list: return the list of active alerts
+    - alerts_list: return the list of all alert types.
+    - proxy: return the client (Class VigilanceMeteoFranceProxy) used by the 
+      object
 
     Methods from DepartmentWeatherAlert class:
     - update_department_status(): update alerts list by feching latest info from
@@ -167,6 +169,11 @@ class DepartmentWeatherAlert(object):
     def department(self):
         """Accessor for area code linked to the weather report"""
         return self._department
+
+    @property
+    def proxy(self):
+        """Accessor for proxy used by the class"""
+        return self._viglance_MF_proxy
 
     @department.setter
     def department(self, department):
