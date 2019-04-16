@@ -18,7 +18,7 @@ DESCRIPTION = (
     "http://vigilance.meteofrance.com/"
 )
 URL = "https://github.com/oncleben31/vigilancemeteo"
-EMAIL = "do_not@spam"
+EMAIL = "oncleben31@gmail.com"
 AUTHOR = "Oncleben31"
 REQUIRES_PYTHON = ">=2.7.0"
 VERSION = None
