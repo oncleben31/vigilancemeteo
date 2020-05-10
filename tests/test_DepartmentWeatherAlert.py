@@ -103,7 +103,7 @@ def test_coastal_risks(fix_local_data):
         "\n - alerts_list: "
         "{'Avalanches': 'Jaune', 'Canicule': 'Vert', 'Grand-froid': 'Vert'"
         ", 'Inondation': 'Vert', 'Neige-verglas': 'Vert', 'Orages': 'Jaune'"
-        ", 'Pluie-innodation': 'Jaune', 'Vagues-submersion': 'Jaune'"
+        ", 'Pluie-inondation': 'Jaune', 'Vagues-submersion': 'Jaune'"
         ", 'Vent violent': 'Vert'}"
     )
     assert zone.__repr__() == excpected_result
@@ -129,7 +129,7 @@ def test_summary_message_alerte(fix_local_data, msg_format):
             "Alerte météo Jaune en cours :"
             "\n - Avalanches: Jaune"
             "\n - Orages: Jaune"
-            "\n - Pluie-innodation: Jaune"
+            "\n - Pluie-inondation: Jaune"
             "\n - Vagues-submersion: Jaune"
         )
     else:  # msg_format == "html" to avoid partial in codecov
@@ -137,7 +137,7 @@ def test_summary_message_alerte(fix_local_data, msg_format):
             "<p>Alerte météo Jaune en cours :</p><ul>"
             "<li>Avalanches: Jaune</li>"
             "<li>Orages: Jaune</li>"
-            "<li>Pluie-innodation: Jaune</li>"
+            "<li>Pluie-inondation: Jaune</li>"
             "<li>Vagues-submersion: Jaune</li></ul>"
         )
     assert zone.summary_message(msg_format) == excpected_result

@@ -8,7 +8,7 @@ ALERT_COLOR_LIST = ["Vert", "Jaune", "Orange", "Rouge"]
 # Alert type
 ALERT_TYPE_LIST = [
     "Vent violent",
-    "Pluie-innodation",
+    "Pluie-inondation",
     "Orages",
     "Inondation",
     "Neige-verglas",
