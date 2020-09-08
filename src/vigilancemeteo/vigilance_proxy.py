@@ -55,13 +55,13 @@ class VigilanceMeteoFranceProxy(object):
 
     # URL used to fetch data on Météo France website.
     URL_VIGILANCE_METEO_XML = (
-        "http://vigilance.meteofrance.com" "/data/NXFR33_LFPW_.xml"
+        "http://vigiprevi.meteofrance.com" "/data/NXFR33_LFPW_.xml"
     )
     # URL_VIGILANCE_METEO_XML = "./tests/NXFR33_LFPW_.xml" #for local tests.
 
     # URL used to check if there were any updates since last check
     URL_VIGILANCE_METEO_CHECKSUM = (
-        "http://vigilance.meteofrance.com" "/data/vigilance_controle.txt"
+        "http://vigiprevi.meteofrance.com" "/data/vigilance_controle.txt"
     )
     # URL_VIGILANCE_METEO_CHECKSUM = "./tests/vigilance_controle.txt" #for local tests
 
