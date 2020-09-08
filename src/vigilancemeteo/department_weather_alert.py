@@ -107,7 +107,7 @@ class DepartmentWeatherAlert(object):
         about active alerts in the department.
         """
         return (
-            "http://vigilance.meteofrance.com/"
+            "http://vigiprevi.meteofrance.com/"
             "Bulletin_sans.html?a=dept{}&b=1&c=".format(self._department)
         )
 
